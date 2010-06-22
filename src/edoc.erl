@@ -258,6 +258,7 @@ opt_defaults() ->
 opt_negations() ->
     [{no_preprocess, preprocess},
      {no_subpackages, subpackages},
+     {no_report_missing_types, report_missing_types},
      {no_packages, packages}].
 
 %% @spec run(Packages::[package()],
@@ -578,6 +579,12 @@ layout(Doc, Opts) ->
 
 
 %% @spec (File) ->  [comment()]
+%% @type comment() = {Line, Column, Indentation, Text}
+%% where
+%%   Line = integer(),
+%%   Column = integer(),
+%%   Indentation = integer(),
+%%   Text = [string()]
 %% @equiv read_comments(File, [])
 
 read_comments(File) ->
@@ -585,12 +592,6 @@ read_comments(File) ->
 
 %% @spec read_comments(File::filename(), Options::proplist()) ->
 %%           [comment()]
-%% where
-%%   comment() = {Line, Column, Indentation, Text},
-%%   Line = integer(),
-%%   Column = integer(),
-%%   Indentation = integer(),
-%%   Text = [string()]
 %%
 %% @doc Extracts comments from an Erlang source code file. See the
 %% module {@link //syntax_tools/erl_comment_scan} for details on the
@@ -642,6 +643,13 @@ read_source(Name) ->
 %%      macro definitions, used if the `preprocess' option is turned on.
 %%      The default value is the empty list.</dd>
 %% </dl>
+%%  <dt>{@type {report_missing_types, boolean()@}}
+%%  </dt>
+%%  <dd>If the value is `true', warnings are issued for missing types.
+%%      The default value is `false'.
+%%      `no_report_missing_types' is an alias for
+%%      `{report_missing_types, false}'.
+%%  </dd>
 %%
 %% @see get_doc/2
 %% @see //syntax_tools/erl_syntax
