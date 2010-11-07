@@ -1,0 +1,3 @@
+EDoc is the Erlang program documentation generator. Inspired by the Javadoc
+tool for the Java programming language, EDoc is adapted to the conventions
+of the Erlang world, and has several features not found in Javadoc.
