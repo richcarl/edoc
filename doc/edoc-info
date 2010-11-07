@@ -1,0 +1,4 @@
+{application,edoc}.
+{packages,[]}.
+{modules,[edoc,edoc_doclet,edoc_extract,edoc_layout,edoc_parser,edoc_run,
+          otpsgml_layout]}.
