@@ -213,8 +213,6 @@ throw_error(E, L) ->
 %% Portions created by Ericsson are Copyright 1999, Ericsson Utvecklings
 %% AB. All Rights Reserved.''
 %% 
-%%     $Id $
-%%
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % The parser generator will insert appropriate declarations before this line.%
