@@ -39,6 +39,7 @@
 is_predefined(any) -> true;
 is_predefined(atom) -> true;
 is_predefined(binary) -> true;
+is_predefined(bool) -> true;    % kept for backwards compatibility
 is_predefined(boolean) -> true;
 is_predefined(char) -> true;
 is_predefined(cons) -> true;

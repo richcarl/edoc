@@ -558,7 +558,7 @@ A hypertext link to a heading written this way can be created using the
 `@section' macro, which transforms the argument text into a label as
 described above. E.g.,
 ```@{@section Concerning Hobbits}'''
-is eqivalent to writing
+is equivalent to writing
 ```<a href="#Concerning_Hobbits">Concerning Hobbits</a>'''
 
 The above expansions take place before XML parsing.

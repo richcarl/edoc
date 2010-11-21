@@ -58,8 +58,6 @@
 	 read_comments/1, read_comments/2,
 	 read_source/1, read_source/2]).
 
--import(edoc_report, [report/2, report/3, error/1, error/3]).
-
 -include("edoc.hrl").
 
 
@@ -177,8 +175,8 @@ application(App, Options) when is_atom(App) ->
  	Dir when is_list(Dir) ->
  	    application(App, Dir, Options);
  	_ ->
- 	    report("cannot find application directory for '~s'.",
- 		   [App]),
+ 	    edoc_report:report("cannot find application directory for '~s'.",
+                               [App]),
  	    exit(error)
     end.
 
@@ -653,8 +651,8 @@ read_source(Name, Opts0) ->
 	    check_forms(Forms, Name),
 	    Forms;
 	{error, R} ->
-	    error({"error reading file '~s'.",
-		   [edoc_lib:filename(Name)]}),
+	    edoc_report:error({"error reading file '~s'.",
+                               [edoc_lib:filename(Name)]}),
 	    exit({error, R})
     end.
 
@@ -678,11 +676,10 @@ check_forms(Fs, Name) ->
 		 error_marker ->
 		     case erl_syntax:error_marker_info(F) of
 			 {L, M, D} ->
-			     error(L, Name, {format_error, M, D});
-
+			     edoc_report:error(L, Name, {format_error, M, D});
 			 Other ->
-			     report(Name, "unknown error in "
-				    "source code: ~w.", [Other])
+			     edoc_report:report(Name, "unknown error in "
+                                                "source code: ~w.", [Other])
 		     end,
 		     exit(error);
 		 _ ->
