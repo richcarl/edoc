@@ -18,7 +18,7 @@
 %% @copyright 2003 Richard Carlsson
 %% @author Richard Carlsson <richardc@it.uu.se>
 %% @see edoc
-%% @end 
+%% @end
 %% =====================================================================
 
 %% @doc Building the EDoc external data structure. See the file
@@ -28,9 +28,10 @@
 
 -export([module/4, package/4, overview/4, type/2]).
 
+-export([hidden_filter/2, get_all_tags/1]).
+
 -include("edoc.hrl").
 
-%% TODO: report multiple definitions of the same type in the same module.
 %% TODO: check that variables in @equiv are found in the signature
 %% TODO: copy types from target (if missing) when using @equiv
 
@@ -136,6 +137,15 @@ functions(Es, Env, Opts) ->
     [function(N, As, Export, Ts, Env, Opts)
      || #entry{name = {_,_}=N, args = As, export = Export, data = Ts}
 	    <- Es].
+
+hidden_filter(Es, Opts) ->
+    Private = proplists:get_bool(private, Opts),
+    Hidden = proplists:get_bool(hidden, Opts),
+    [E || E <- Es,
+          case E#entry.name of
+              {_, _} -> function_filter(E, Private, Hidden);
+              _ -> true
+          end].
 
 function_filter(Es, Opts) ->
     Private = proplists:get_bool(private, Opts),
@@ -296,7 +306,7 @@ get_deprecated(Ts, F, A, Env) ->
 	    case otp_internal:obsolete(M, F, A) of
 		{Tag, Text} when Tag =:= deprecated; Tag =:= removed ->
 		    deprecated([Text]);
-		{Tag, Repl, _Rel} when Tag =:= deprecated; Tag =:= removed -> 
+		{Tag, Repl, _Rel} when Tag =:= deprecated; Tag =:= removed ->
 		    deprecated(Repl, Env);
 		_ ->
 		    []
