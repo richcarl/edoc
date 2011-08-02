@@ -14,7 +14,6 @@
 %% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
 %% USA
 %%
-%% @private
 %% @copyright 2001-2003 Richard Carlsson
 %% @author Richard Carlsson <richardc@it.uu.se>
 %% @see edoc
