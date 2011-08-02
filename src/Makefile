@@ -23,6 +23,7 @@ SOURCES= \
 	edoc_report.erl \
 	edoc_run.erl \
 	edoc_scanner.erl \
+	edoc_specs.erl \
 	edoc_tags.erl \
 	edoc_types.erl \
 	edoc_wiki.erl \
