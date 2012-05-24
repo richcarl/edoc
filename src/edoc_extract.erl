@@ -307,7 +307,7 @@ get_module_info(Forms, File) ->
     Attributes = ordsets:from_list(get_list_keyval(attributes, L)),
     Records = get_list_keyval(records, L),
 
-    exit(module_name, Name),
+    exit({module_name, Name}),
 
     #module{name = Name,
 	    parameters = Vars,
