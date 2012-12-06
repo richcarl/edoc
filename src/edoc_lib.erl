@@ -269,6 +269,10 @@ is_name_1(_) -> false.
 
 to_atom(A) when is_atom(A) -> A;
 to_atom(S) when is_list(S) -> list_to_atom(S).
+
+to_list(A) when is_atom(A) -> atom_to_list(A);
+to_list(S) when is_list(S) -> S.
+
     
 %% @private
 unique([X | Xs]) -> [X | unique(Xs, X)];
@@ -695,8 +699,7 @@ write_file(Text, Dir, Name, Package) ->
     write_file(Text, Dir, Name, Package, [{encoding,latin1}]).
 
 write_file(Text, Dir, Name, Package, Options) ->
-    Dir1 = filename:join([Dir | packages:split(Package)]),
-    File = filename:join(Dir1, Name),
+    File = filename:join([Dir, to_list(Package), Name]),
     ok = filelib:ensure_dir(File),
     case file:open(File, [write] ++ Options) of
 	{ok, FD} ->
@@ -836,7 +839,7 @@ find_sources(Path, Pkg, Rec, Ext, Opts) ->
     lists:flatten(find_sources_1(Path, to_atom(Pkg), Rec, Ext, Skip)).
 
 find_sources_1([P | Ps], Pkg, Rec, Ext, Skip) ->
-    Dir = filename:join(P, filename:join(packages:split(Pkg))),
+    Dir = filename:join(P, atom_to_list(Pkg)),
     Fs1 = find_sources_1(Ps, Pkg, Rec, Ext, Skip),
     case filelib:is_dir(Dir) of
 	true ->
@@ -864,8 +867,11 @@ find_sources_2(Dir, Pkg, Rec, Ext, Skip) ->
 
 find_sources_3(Es, Dir, Pkg, Rec, Ext, Skip) ->
     [find_sources_2(filename:join(Dir, E),
-		    to_atom(packages:concat(Pkg, E)), Rec, Ext, Skip)
+		    to_atom(join(Pkg, E)), Rec, Ext, Skip)
      || E <- Es, is_package_dir(E, Dir)].
+
+join('', E) -> E;
+join(Pkg, E) -> filename:join(Pkg, E).
 
 is_source_file(Name, Ext) ->
     (filename:extension(Name) == Ext)
@@ -876,16 +882,16 @@ is_package_dir(Name, Dir) ->
 	andalso filelib:is_dir(filename:join(Dir, Name)).
 
 %% @private
-find_file([P | Ps], Pkg, Name) ->
-    Dir = filename:join(P, filename:join(packages:split(Pkg))),
-    File = filename:join(Dir, Name),
+find_file([P | Ps], []=Pkg, Name) ->
+    Pkg = [],
+    File = filename:join(P, Name),
     case filelib:is_file(File) of
 	true ->
 	    File;    
 	false ->
 	    find_file(Ps, Pkg, Name)
     end;    
-find_file([], _Pkg, _Name) ->
+find_file([], [], _Name) ->
     "".
 
 %% @private
