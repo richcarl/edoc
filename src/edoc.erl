@@ -176,7 +176,7 @@ application(App, Options) when is_atom(App) ->
  	Dir when is_list(Dir) ->
  	    application(App, Dir, Options);
  	_ ->
- 	    edoc_report:report("cannot find application directory for '~s'.",
+	    edoc_report:report("cannot find application directory for '~s'.",
                                [App]),
  	    exit(error)
     end.
