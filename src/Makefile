@@ -38,9 +38,13 @@ $(OBJECTS): edoc.hrl edoc_types.hrl \
 
 clean:
 	rm -f $(OBJECTS)
+	rm -f edoc_parser.erl
 
 $(EBIN)/%.$(EMULATOR):%.erl
 	erlc -pa $(EBIN) -W $(ERL_COMPILE_FLAGS) -o$(EBIN) $<
+
+edoc_parser.erl: edoc_parser.yrl
+	erlc $<
 
 $(APP_TARGET): edoc.app.src ../vsn.mk
 	sed -e 's;%VSN%;$(EDOC_VSN);' $< > $@
