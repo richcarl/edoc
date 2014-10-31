@@ -1018,7 +1018,7 @@ get_plugin(Key, Default, Opts) ->
 %% ---------------------------------------------------------------------
 %% Error handling
 
--type line() :: erl_scan:line().
+-type line() :: erl_anno:line().
 -type err()  :: 'eof'
 	      | {'missing', char()}
 	      | {line(), atom(), string()}
