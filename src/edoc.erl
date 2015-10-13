@@ -560,7 +560,6 @@ read_source(Name) ->
 %%  <dd>Specifies a list of pre-defined Erlang preprocessor (`epp')
 %%      macro definitions, used if the `preprocess' option is turned on.
 %%      The default value is the empty list.</dd>
-%% </dl>
 %%  <dt>{@type {report_missing_types, boolean()@}}
 %%  </dt>
 %%  <dd>If the value is `true', warnings are issued for missing types.
@@ -568,6 +567,7 @@ read_source(Name) ->
 %%      `no_report_missing_types' is an alias for
 %%      `{report_missing_types, false}'.
 %%  </dd>
+%% </dl>
 %%
 %% @see get_doc/2
 %% @see //syntax_tools/erl_syntax
