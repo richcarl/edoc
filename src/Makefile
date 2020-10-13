@@ -12,10 +12,13 @@ ERL_COMPILE_FLAGS += -I$(INCLUDE) +warn_unused_vars +nowarn_shadow_vars +warn_un
 
 SOURCES= \
 	edoc.erl \
+	edoc_cli.erl \
 	edoc_data.erl \
 	edoc_doclet.erl \
+	edoc_doclet_chunks.erl \
 	edoc_extract.erl \
 	edoc_layout.erl \
+	edoc_layout_chunks.erl \
 	edoc_lib.erl \
 	edoc_macros.erl \
 	edoc_parser.erl \
@@ -26,7 +29,8 @@ SOURCES= \
 	edoc_specs.erl \
 	edoc_tags.erl \
 	edoc_types.erl \
-	edoc_wiki.erl
+	edoc_wiki.erl \
+	rebar3_edoc_chunks.erl
 
 OBJECTS=$(SOURCES:%.erl=$(EBIN)/%.$(EMULATOR)) $(APP_TARGET) $(APPUP_TARGET)
 
