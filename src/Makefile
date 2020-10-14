@@ -29,8 +29,7 @@ SOURCES= \
 	edoc_specs.erl \
 	edoc_tags.erl \
 	edoc_types.erl \
-	edoc_wiki.erl \
-	rebar3_edoc_chunks.erl
+	edoc_wiki.erl
 
 OBJECTS=$(SOURCES:%.erl=$(EBIN)/%.$(EMULATOR)) $(APP_TARGET) $(APPUP_TARGET)
 
