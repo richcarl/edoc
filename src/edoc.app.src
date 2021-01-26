@@ -1,7 +1,8 @@
 % This is an -*- erlang -*- file.
 
 {application, edoc,
- [{description, "EDoc"},
+ [
+  {description, "EDoc, the Erlang documentation engine"},
   {vsn, "%VSN%"},
   {modules, [edoc,
 	     edoc_cli,
@@ -24,4 +25,5 @@
 	     edoc_wiki]},
   {registered,[]},
   {applications, [compiler,kernel,stdlib,syntax_tools]},
-  {env, []}]}.
+  {env, []}
+]}.
