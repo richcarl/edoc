@@ -10,6 +10,7 @@
 	     edoc_doclet,
 	     edoc_doclet_chunks,
 	     edoc_extract,
+             edoc_html_to_markdown,
 	     edoc_layout,
 	     edoc_layout_chunks,
 	     edoc_lib,
