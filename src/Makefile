@@ -16,6 +16,7 @@ SOURCES= \
 	edoc_data.erl \
 	edoc_doclet.erl \
 	edoc_doclet_chunks.erl \
+	edoc_doclet_markdown.erl \
 	edoc_extract.erl \
 	edoc_html_to_markdown.erl \
 	edoc_layout.erl \
