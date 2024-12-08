@@ -8,7 +8,7 @@ INCLUDE=../include
 APP_TARGET=$(EBIN)/edoc.app
 APPUP_TARGET=$(EBIN)/edoc.appup
 
-ERL_COMPILE_FLAGS += -I$(INCLUDE) +warn_unused_vars +nowarn_shadow_vars +warn_unused_import
+ERL_COMPILE_FLAGS += -I$(INCLUDE) +warn_unused_vars +nowarn_shadow_vars +warn_unused_import +warn_deprecated_catch -Werror
 
 SOURCES= \
 	edoc.erl \
