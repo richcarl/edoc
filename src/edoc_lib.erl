@@ -1,4 +1,3 @@
-%% -*- coding: latin-1 -*-
 %% =====================================================================
 %% Licensed under the Apache License, Version 2.0 (the "License"); you may
 %% not use this file except in compliance with the License. You may obtain
@@ -270,13 +269,13 @@ end_of_sentence_1(_, false, _) ->
 %% 173 - 176	{ - ~		punctuation
 %% 177		DEL		control
 %% 200 - 237			control
-%% 240 - 277	NBSP - ¿	punctuation
-%% 300 - 326	À - Ö		uppercase
-%% 327		×		punctuation
-%% 330 - 336	Ø - Þ		uppercase
-%% 337 - 366	ß - ö		lowercase
-%% 367		÷		punctuation
-%% 370 - 377	ø - ÿ		lowercase
+%% 240 - 277	NBSP - Â¿	punctuation
+%% 300 - 326	Ã€ - Ã–		uppercase
+%% 327		Ã—		punctuation
+%% 330 - 336	Ã˜ - Ãž		uppercase
+%% 337 - 366	ÃŸ - Ã¶		lowercase
+%% 367		Ã·		punctuation
+%% 370 - 377	Ã¸ - Ã¿		lowercase
 
 %% Names must begin with a lowercase letter and contain only
 %% alphanumerics and underscores.
