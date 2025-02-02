@@ -6,7 +6,6 @@ EBIN=../ebin
 INCLUDE=../include
 
 APP_TARGET=$(EBIN)/edoc.app
-APPUP_TARGET=$(EBIN)/edoc.appup
 
 ERL_COMPILE_FLAGS += -I$(INCLUDE) +warn_unused_vars +nowarn_shadow_vars +warn_unused_import +warn_deprecated_catch -Werror
 
@@ -33,7 +32,7 @@ SOURCES= \
 	edoc_types.erl \
 	edoc_wiki.erl
 
-OBJECTS=$(SOURCES:%.erl=$(EBIN)/%.$(EMULATOR)) $(APP_TARGET) $(APPUP_TARGET)
+OBJECTS=$(SOURCES:%.erl=$(EBIN)/%.$(EMULATOR)) $(APP_TARGET)
 
 all: $(OBJECTS)
 
@@ -51,7 +50,4 @@ edoc_parser.erl: edoc_parser.yrl
 	erlc $<
 
 $(APP_TARGET): edoc.app.src ../vsn.mk
-	sed -e 's;%VSN%;$(EDOC_VSN);' $< > $@
-
-$(APPUP_TARGET): edoc.appup.src ../vsn.mk
 	sed -e 's;%VSN%;$(EDOC_VSN);' $< > $@
