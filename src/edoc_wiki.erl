@@ -71,7 +71,8 @@
 
 -module(edoc_wiki).
 
--compile(nowarn_deprecated_catch).
+-compile([{nowarn_unsafe_function, {xmerl_scan, string, 2}},
+          nowarn_deprecated_catch]).
 
 -export([parse_xml/2, expand_text/2]).
 

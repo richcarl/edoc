@@ -3,6 +3,9 @@
 %% @copyright Ericsson AB 2024-2025. All Rights Reserved.
 %% @doc EDoc command line interface
 -module(edoc_cli).
+
+-compile([{nowarn_possibly_unsafe_function, {erlang, list_to_atom, 1}}]).
+
 -export([main/1]).
 
 %% TODO: accept `private'/`hidden' and forward accordingly

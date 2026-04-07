@@ -43,6 +43,8 @@
 
 -module(edoc_doclet_markdown).
 
+-compile([{nowarn_possibly_unsafe_function, {erlang, binary_to_term, 1}}]).
+
 -export([run/2]).
 
 %% @headerfile "../include/edoc_doclet.hrl"

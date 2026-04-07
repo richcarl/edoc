@@ -275,6 +275,8 @@ Header
 
 Erlang code.
 
+-compile([{nowarn_possibly_unsafe_function, {erlang, list_to_atom, 1}}]).
+
 -export([parse_spec/2, parse_typedef/2, parse_throws/2, parse_ref/2,
 	 parse_see/2, parse_param/2]).
 
