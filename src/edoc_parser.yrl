@@ -5,8 +5,8 @@
 %% Also contains entry points for parsing things like typedefs,
 %% references, and throws-declarations.
 %%
+%% Copyright Ericsson AB 2009-2026. All Rights Reserved.
 %% Copyright (C) 2002-2005 Richard Carlsson
-%% Copyright Ericsson AB 2009-2025. All Rights Reserved.
 %%
 %% Licensed under the Apache License, Version 2.0 (the "License"); you may
 %% not use this file except in compliance with the License. You may obtain

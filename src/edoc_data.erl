@@ -20,8 +20,8 @@
 %% either the Apache License or the LGPL.
 %%
 %% @private
+%% @copyright Ericsson AB 2009-2026. All Rights Reserved.
 %% @copyright 2003 Richard Carlsson
-%% @copyright Ericsson AB 2009-2025. All Rights Reserved.
 %% @author Richard Carlsson <carlsson.richard@gmail.com>
 %% @see edoc
 %% @end
