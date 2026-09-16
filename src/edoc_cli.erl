@@ -1,4 +1,6 @@
 %% @private
+%% @copyright 2019-2021 Radek Szymczyszyn <lavrin@gmail.com>.
+%% @copyright Ericsson AB 2024-2025. All Rights Reserved.
 %% @doc EDoc command line interface
 -module(edoc_cli).
 -export([main/1]).

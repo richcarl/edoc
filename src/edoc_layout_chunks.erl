@@ -20,6 +20,7 @@
 %% either the Apache License or the LGPL.
 %%
 %% @copyright 2019-2021 Radek Szymczyszyn
+%% @copyright Ericsson AB 2023-2025. All Rights Reserved.
 %% @author Radek Szymczyszyn <lavrin@gmail.com>
 %% @end
 %% =====================================================================

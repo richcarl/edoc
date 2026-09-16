@@ -21,6 +21,7 @@
 %%
 %% @private
 %% @copyright 2003 Richard Carlsson
+%% @copyright Ericsson AB 2009-2025. All Rights Reserved.
 %% @author Richard Carlsson <carlsson.richard@gmail.com>
 %% @see edoc
 %% @end
