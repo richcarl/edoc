@@ -15,8 +15,7 @@
 %% Utvecklings AB. All Rights Reserved.''
 %%
 %% @private
-%% @copyright Ericsson AB 1999-2026. All Rights Reserved.
-%% @copyright Richard Carlsson 2001-2006.
+%% @copyright Richard Carlsson 2001-2006; Ericsson AB 1999-2026
 %% @author Richard Carlsson <carlsson.richard@gmail.com>
 %% @see edoc
 %% @end

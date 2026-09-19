@@ -19,8 +19,7 @@
 %% above, a recipient may use your version of this file under the terms of
 %% either the Apache License or the LGPL.
 %%
-%% @copyright 2001-2007 Richard Carlsson
-%% @copyright Ericsson AB 2009-2026. All Rights Reserved.
+%% @copyright 2001-2007 Richard Carlsson; Ericsson AB 2009-2026
 %% @author Richard Carlsson <carlsson.richard@gmail.com>
 %% @version {@version}
 %% @end
