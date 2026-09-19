@@ -5,20 +5,20 @@ SUB_DIRECTORIES = src
 
 include vsn.mk
 
-DOC_OPTS={def,{version,\"$(EDOC_VSN)\"}}
+DOC_OPTS="[preprocess,{def,{version,\"$(EDOC_VSN)\"}}]"
 
 
 all: subdirs
 
 subdirs:
 	@for d in $(SUB_DIRECTORIES); do \
-	  	(cd $$d; $(MAKE)); \
+	  (cd $$d; $(MAKE)); \
 	done
 
 clean:
 	@for d in $(SUB_DIRECTORIES); do \
-	  	(cd $$d; $(MAKE) clean); \
+	  (cd $$d; $(MAKE) clean); \
 	done
 
 docs:
-	erl -pa ./ebin -noshell -eval "edoc:application($(APPNAME), \".\", [$(DOC_OPTS)])" -s init stop
+	erl -pa ./ebin -noshell -eval "edoc:application($(APPNAME), \".\", $(DOC_OPTS))" -s init stop
