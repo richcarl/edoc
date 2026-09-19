@@ -231,7 +231,7 @@ filter_tags([#tag{name = N, line = L} = T | Ts], Tags, Where, Ts1) ->
 	false ->
 	    case Where of
 		no -> ok;
-		_ -> edoc_report:warning(L, Where, "tag @~s not recognized.", [N])
+		_ -> edoc_report:warning(L, Where, "tag @~s not recognized", [N])
 	    end,
 	    filter_tags(Ts, Tags, Where, Ts1)
     end;
@@ -250,7 +250,7 @@ check_tags([#tag{name = T, line = L} | Ts], Allow, Single, Where, Error, Seen) -
 		false ->
 		    check_tags(Ts, Allow, Single, Where, Error, Seen);
 		true ->
-		    edoc_report:report(L, Where, "multiple @~s tag.", [T]),
+		    edoc_report:report(L, Where, "multiple @~s tag", [T]),
 		    check_tags(Ts, Allow, Single, Where, true, Seen)
 	    end;
 	false ->
@@ -259,7 +259,7 @@ check_tags([#tag{name = T, line = L} | Ts], Allow, Single, Where, Error, Seen) -
 		true ->
 		    check_tags(Ts, Allow, Single, Where, Error, Seen1);
 		false ->
-		    edoc_report:report(L, Where, "tag @~s not allowed here.", [T]),
+		    edoc_report:report(L, Where, "tag @~s not allowed here", [T]),
 		    check_tags(Ts, Allow, Single, Where, true, Seen1)
 	    end
     end;
@@ -313,12 +313,12 @@ parse_expr(Data, Line, _Env, _Where) ->
 
 parse_spec(Data, Line, _Env, {_, {F, A}} = Where) ->
     edoc_report:warning(Line, Where,
-			"EDoc @spec tags are deprecated. "
-			"Please use -spec attributes instead.", []),
+			"EDoc @spec tags are deprecated, "
+			"please use -spec attributes instead", []),
     Spec = edoc_parser:parse_spec(Data, Line),
     #t_spec{name = N, type = #t_fun{args = As}} = Spec,
     if length(As) /= A ->
-	    throw_error(Line, "@spec arity does not match.");
+	    throw_error(Line, "@spec arity does not match");
        true ->
 	    case N of
 		undefined ->
@@ -326,7 +326,7 @@ parse_spec(Data, Line, _Env, {_, {F, A}} = Where) ->
 		#t_name{module = [], name = F} ->
 		    Spec;
 		_ ->
-		    throw_error(Line, "@spec name does not match.")
+		    throw_error(Line, "@spec name does not match")
 	    end
     end.
 
@@ -339,7 +339,7 @@ parse_throws(Data, Line, _Env, {_, {_F, _A}} = _Where) ->
 parse_contact(Data, Line, _Env, _Where) ->
     case edoc_lib:parse_contact(Data, Line) of
 	{"", "", _URI} ->
-	    throw_error(Line, "must specify name or e-mail.");
+	    throw_error(Line, "must specify name or e-mail");
 	Info ->
 	    Info
     end.
@@ -347,8 +347,8 @@ parse_contact(Data, Line, _Env, _Where) ->
 -dialyzer({no_match, parse_typedef/4}).
 parse_typedef(Data, Line, _Env, Where) ->
     edoc_report:warning(Line, Where,
-			"EDoc @type tags are deprecated. "
-			"Please use -type attributes instead.", []),
+			"EDoc @type tags are deprecated, "
+			"please use -type attributes instead", []),
     Def = edoc_parser:parse_typedef(Data, Line),
     {#t_typedef{name = #t_name{name = T}, args = As}, _} = Def,
     NAs = length(As),
@@ -356,10 +356,10 @@ parse_typedef(Data, Line, _Env, Where) ->
 	true ->
             case edoc_types:is_new_predefined(T, NAs) of
                 false ->
-                    throw_error(Line, {"redefining built-in type '~w'.",
+                    throw_error(Line, {"redefining built-in type '~w'",
                                        [T]});
                 true ->
-		    edoc_report:warning(Line, Where, "redefining built-in type '~w'.",
+		    edoc_report:warning(Line, Where, "redefining built-in type '~w'",
 					[T]),
                     Def
             end;

@@ -226,7 +226,7 @@ source({M, Name, Path}, Dir, Suffix, Env, Set, Private, Hidden,
 		    {Set, Error}
 	    end;
 	R ->
-	    report("skipping source file '~ts': ~tP.", [File, R, 15]),
+	    report("skipping source file '~ts': ~tP", [File, R, 15]),
 	    {Set, true}
     end.
 
@@ -241,7 +241,7 @@ check_name(M, M0, File) ->
 	    ok;
 	_ ->
 	    if N =/= N0 ->
-		    warning("file '~ts' actually contains module '~s'.",
+		    warning("file '~ts' actually contains module '~s'",
 			    [File, M]);
 	       true ->
 		    ok
@@ -340,7 +340,7 @@ copy_image(Dir) ->
 	    From = filename:join(PrivDir, ?IMAGE),
 	    edoc_lib:copy_file(From, filename:join(Dir, ?IMAGE));
 	_ ->
-	    report("cannot find default image file.", []),
+	    report("cannot find default image file", []),
 	    exit(error)
     end.
 
@@ -359,7 +359,7 @@ copy_stylesheet(Dir, Options) ->
 				   filename:join(PrivDir, ?STYLESHEET);
 			       _ ->
 				   report("cannot find default "
-					  "stylesheet file.", []),
+					  "stylesheet file", []),
 				   exit(error)
 			   end
 		   end,
@@ -384,7 +384,7 @@ stylesheet(Options) ->
 		      S when is_list(S) ->
 			  S;
 		      _ ->
-			  report("bad value for option 'stylesheet'.",
+			  report("bad value for option 'stylesheet'",
 				 []),
 			  exit(error)
 		  end,

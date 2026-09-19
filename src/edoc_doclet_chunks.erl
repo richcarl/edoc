@@ -132,6 +132,6 @@ write_file(Data, Dir, Name, _Options) ->
 	ok -> ok;
 	{error, R} ->
 	    R1 = file:format_error(R),
-	    report("could not write file '~ts': ~ts.", [File, R1]),
+	    report("could not write file '~ts': ~ts", [File, R1]),
 	    exit(error)
     end.

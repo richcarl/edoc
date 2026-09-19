@@ -95,11 +95,11 @@ parse_xml_1(Text, Line) ->
 	{ok, {E, _}} ->
 	    E#xmlElement.content;
 	{'EXIT', {fatal, {Reason, L, _C}}} ->
-	    throw_error(L, {"XML parse error: ~p.", [Reason]});
+	    throw_error(L, {"XML parse error: ~p", [Reason]});
 	{'EXIT', Reason} ->
-	    throw_error(Line, {"error in XML parser: ~P.", [Reason, 10]});
+	    throw_error(Line, {"error in XML parser: ~P", [Reason, 10]});
 	Other ->
-	    throw_error(Line, {"nocatch in XML parser: ~P.", [Other, 10]})
+	    throw_error(Line, {"nocatch in XML parser: ~P", [Other, 10]})
     end.
 
 %% Expand wiki stuff in arbitrary text.

@@ -63,7 +63,7 @@ check_defs([{K, D} | Ds]) when is_atom(K), is_list(D) ->
 check_defs([{K, D} | Ds]) when is_atom(K), is_function(D, 3) ->
     check_defs(Ds);
 check_defs([X | _Ds]) ->
-    edoc_report:report("bad macro definition: ~P.", [X, 10]),
+    edoc_report:report("bad macro definition: ~P", [X, 10]),
     exit(error);
 check_defs([]) ->
     ok.
@@ -192,7 +192,7 @@ expand_macro_def(M, Arg, L, Defs, St, As) ->
     Seen = St#state.seen,
     case sets:is_element(M, Seen) of
 	true ->
-	    throw_error(L, {"recursive macro expansion of {@~s}.",
+	    throw_error(L, {"recursive macro expansion of {@~s}",
 			    [M]});
 	false ->
 	    Arg1 = lists:reverse(expand(Arg, L, Defs, St, [])),
@@ -208,7 +208,7 @@ expand_macro_def(M, Arg, L, Defs, St, As) ->
 		    expand(Txt, L, Defs1, St1, As);
 		error ->
 		    edoc_report:warning(L, St1#state.where,
-					"undefined macro {@~s}.", [M]),
+					"undefined macro {@~s}", [M]),
 		    "??"
 	    end
     end.
@@ -330,10 +330,10 @@ macro_content([], _As, _L, _N) ->
 -spec throw_error(line(), err()) -> no_return().
 
 throw_error(L, unterminated_macro) ->
-    throw_error(L, {"unexpected end of macro.", []});
+    throw_error(L, {"unexpected end of macro", []});
 throw_error(L, macro_name) ->
-    throw_error(L, {"missing macro name.", []});
+    throw_error(L, {"missing macro name", []});
 throw_error(L, {macro_name, S}) ->
-    throw_error(L, {"bad macro name: '@~s...'.", [lists:reverse(S)]});
+    throw_error(L, {"bad macro name: '@~s...'", [lists:reverse(S)]});
 throw_error(L, D) ->
     throw({error, L, D}).

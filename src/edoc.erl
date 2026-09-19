@@ -217,7 +217,7 @@ application(App, Options) when is_atom(App) ->
  	Dir when is_list(Dir) ->
  	    application(App, Dir, Options);
  	_ ->
-	    edoc_report:report("cannot find application directory for '~s'.",
+	    edoc_report:report("cannot find application directory for '~s'",
                                [App]),
  	    exit(error)
     end.
@@ -643,7 +643,7 @@ read_source(Name, Opts0) ->
 	    check_forms(Forms, Name, Opts),
 	    Forms;
 	{error, R} ->
-	    edoc_report:error({"error reading file '~ts'.",
+	    edoc_report:error({"error reading file '~ts'",
                                [edoc_lib:filename(Name)]}),
 	    exit({error, R})
     end.
@@ -769,7 +769,7 @@ check_forms(Fs, Name, Opts) ->
                              end;
 			 Other ->
 			     edoc_report:report(Name, "unknown error in "
-                                                "source code: ~w.", [Other])
+                                                "source code: ~w", [Other])
 		     end,
 		     exit(error);
 		 _ ->

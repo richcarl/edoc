@@ -150,7 +150,7 @@ init_opts(Element, Options) ->
 	S when is_list(S) ->
 	    R#opts{stylesheet = S};
 	_ ->
-	    report("bad value for option `stylesheet'.", []),
+	    report("bad value for option `stylesheet'", []),
 	    exit(error)
     end.
 

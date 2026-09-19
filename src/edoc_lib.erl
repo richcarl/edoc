@@ -363,7 +363,7 @@ scan_name([$< | Cs], L, I, As) ->
 	    {Cs1, I1} = scan_email(Cs, L, set_name(I, As), []),
 	    scan_name(Cs1, L, I1, []);
 	_ ->
-	    throw_error("multiple '<...>' sections.", L)
+	    throw_error("multiple '<...>' sections", L)
     end;
 scan_name([$[ | Cs], L, I, As) ->
     case I#info.uri of
@@ -371,7 +371,7 @@ scan_name([$[ | Cs], L, I, As) ->
 	    {Cs1, I1} = scan_uri(Cs, L, set_name(I, As), []),
 	    scan_name(Cs1, L, I1, []);
 	_ ->
-	    throw_error("multiple '[...]' sections.", L)
+	    throw_error("multiple '[...]' sections", L)
     end;
 scan_name([$\n | Cs], L, I, As) ->
     scan_name(Cs, L + 1, I, [$\n | As]);
@@ -512,7 +512,7 @@ filename([]) ->
 filename(N) when is_atom(N) ->
     atom_to_list(N);
 filename(N) ->
-    report("bad filename: `~tP'.", [N, 25]),
+    report("bad filename: `~tP'", [N, 25]),
     exit(error).
 
 %% @private
@@ -521,7 +521,7 @@ copy_file(From, To) ->
 	{ok, _} -> ok;
 	{error, R} ->
 	    R1 = file:format_error(R),
-	    report("error copying '~ts' to '~ts': ~ts.", [From, To, R1]),
+	    report("error copying '~ts' to '~ts': ~ts", [From, To, R1]),
 	    exit(error)
     end.
 
@@ -537,7 +537,7 @@ list_dir(Dir, Error) ->
 			fun (S, As) -> warning(S, As), [] end
 		end,
 	    R1 = file:format_error(R),
-	    F("could not read directory '~ts': ~ts.", [filename(Dir), R1])
+	    F("could not read directory '~ts': ~ts", [filename(Dir), R1])
     end.
 
 %% @private
@@ -573,7 +573,7 @@ simplify_path(P) ->
 %% 	ok -> ok;
 %% 	{error, R} ->
 %% 	    R1 = file:format_error(R),
-%% 	    report("cannot create directory '~ts': ~ts.", [Dir, R1]),
+%% 	    report("cannot create directory '~ts': ~ts", [Dir, R1]),
 %% 	    exit(error)
 %%     end.
 
@@ -605,7 +605,7 @@ write_file(Text, Dir, Name, Options) ->
 	    ok = file:close(FD);
 	{error, R} ->
 	    R1 = file:format_error(R),
-	    report("could not write file '~ts': ~ts.", [File, R1]),
+	    report("could not write file '~ts': ~ts", [File, R1]),
 	    exit(error)
     end.
 
@@ -656,7 +656,7 @@ read_info_file(Dir) ->
 		    parse_info_file(Text, File);
 		{error, R} ->
 		    R1 = file:format_error(R),
-		    warning("could not read '~ts': ~ts.", [File, R1]),
+		    warning("could not read '~ts': ~ts", [File, R1]),
 		    {no_app, []}
 	    end;
 	false ->
@@ -668,10 +668,10 @@ parse_info_file(Text, Name) ->
 	{ok, Vs} ->
 	    info_file_data(Vs);
 	{error, eof} ->
-	    warning("unexpected end of file in '~ts'.", [Name]),
+	    warning("unexpected end of file in '~ts'", [Name]),
 	    {no_app, []};
 	{error, {_Line,Module,R}} ->
-	    warning("~ts: ~ts.", [Module:format_error(R), Name]),
+	    warning("~ts: ~ts", [Module:format_error(R), Name]),
 	    {no_app, []}
     end.
 
@@ -891,7 +891,7 @@ run_plugin(Name, Key, Default, Fun, Opts) when is_atom(Name) ->
 	{ok, Value} ->
 	    Value;
 	R ->
-	    report("error in ~ts '~w': ~tP.", [Name, Module, R, 20]),
+	    report("error in ~ts '~w': ~tP", [Name, Module, R, 20]),
 	    exit(error)
     end.
 
@@ -900,7 +900,7 @@ get_plugin(Key, Default, Opts) ->
 	M when is_atom(M) ->
 	    M;
 	Other ->
-	    report("bad value for option '~w': ~tP.", [Key, Other, 10]),
+	    report("bad value for option '~w': ~tP", [Key, Other, 10]),
 	    exit(error)
     end.
 
@@ -917,9 +917,9 @@ get_plugin(Key, Default, Opts) ->
 -spec throw_error(err(), line()) -> no_return().
 
 throw_error({missing, C}, L) ->
-    throw_error({"missing '~c'.", [C]}, L);
+    throw_error({"missing '~c'", [C]}, L);
 throw_error(eof, L) ->
-    throw({error,L,"unexpected end of expression."});
+    throw({error,L,"unexpected end of expression"});
 throw_error({L, M, D}, _L) ->
     throw({error,L,{format_error,M,D}});
 throw_error(D, L) ->

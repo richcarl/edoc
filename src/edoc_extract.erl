@@ -306,7 +306,7 @@ get_module_info(Forms, File) ->
 	    {ok, L1} ->
 		L1;
 	    syntax_error ->
-		report(File, "syntax error in input.", []),
+		report(File, "syntax error in input", []),
 		exit(error);
 	    {'EXIT', R} ->
 		exit(R);
@@ -319,7 +319,7 @@ get_module_info(Forms, File) ->
 		       {module, {N, _}=Mod} when is_atom(N) ->
 			   Mod;
 		       _ ->
-			   report(File, "module name missing.", []),
+			   report(File, "module name missing", []),
 			   exit(error)
 		   end,
     Functions = ordsets:from_list(get_list_keyval(functions, L)),
@@ -499,7 +499,7 @@ error_redundant_specs(Mod, SpecList, Specs) ->
     [{RedundantMFA, [Form]} | _] = lists:sort(SpecList) -- lists:sort(maps:to_list(Specs)),
     {_, Line, _, _} = erl_syntax:revert(Form),
     {_, F, A} = RedundantMFA,
-    edoc_report:error(Line, {Mod#module.file, {F, A}}, "Redundant -spec attribute found. Try setting {preprocess, true}."),
+    edoc_report:error(Line, {Mod#module.file, {F, A}}, "redundant -spec attribute found, try setting {preprocess, true}"),
     erlang:exit({redundant_spec, RedundantMFA}).
 
 insert_specs_(_, [], _) -> [];
