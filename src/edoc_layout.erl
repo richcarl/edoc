@@ -103,7 +103,6 @@
 %%
 %% @see edoc:layout/2
 
-%% NEW-OPTIONS: xml_export, index_columns, stylesheet
 -spec module(Element, Options) -> term() when
       Element :: edoc:edoc_module(),
       Options :: options().

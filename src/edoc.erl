@@ -165,9 +165,6 @@ file(Name) ->
 %%
 %% @see read/2
 
-%% NEW-OPTIONS: source_suffix, file_suffix, dir
-%% INHERIT-OPTIONS: read/2
-
 -spec file(Name, Options) -> ok when
       Name :: filename(),
       Options :: proplist().
@@ -368,14 +365,6 @@ opt_negations() ->
 %% @see files/2
 %% @see application/2
 
-%% NEW-OPTIONS: source_path, application
-%% INHERIT-OPTIONS: init_context/1
-%% INHERIT-OPTIONS: expand_sources/2
-%% INHERIT-OPTIONS: target_dir_info/5
-%% INHERIT-OPTIONS: edoc_lib:find_sources/2
-%% INHERIT-OPTIONS: edoc_lib:run_doclet/2
-%% INHERIT-OPTIONS: edoc_lib:get_doc_env/3
-
 -spec run(Files, Opts) -> ok when
       Files :: [filename()],
       Opts :: proplist().
@@ -404,15 +393,10 @@ expand_opts(Opts0) ->
     proplists:substitute_negations(opt_negations(),
 				   Opts0 ++ opt_defaults()).
 
-%% NEW-OPTIONS: dir
-%% DEFER-OPTIONS: run/2
-
 init_context(Opts) ->
     #doclet_context{dir = proplists:get_value(dir, Opts, ?CURRENT_DIR),
 	     opts = Opts
 	    }.
-
-%% INHERIT-OPTIONS: edoc_lib:find_sources/2
 
 sources(Path, Opts) ->
 	edoc_lib:find_sources(Path, Opts).
@@ -427,9 +411,6 @@ expand_files([]) ->
 
 %% Create the (assumed) full module names. Keep only the first source
 %% for each module, but preserve the order of the list.
-
-%% NEW-OPTIONS: source_suffix
-%% DEFER-OPTIONS: run/2
 
 expand_sources(Ss, Opts) ->
     Suffix = proplists:get_value(source_suffix, Opts,
@@ -449,8 +430,6 @@ expand_sources([{F, D} | Fs], Suffix, S, As, Ms) ->
     end;
 expand_sources([], _Suffix, _S, As, Ms) ->
     {lists:reverse(As), lists:reverse(Ms)}.
-
-%% NEW-OPTIONS: new
 
 target_dir_info(Dir, App, Ms, Opts) ->
     case proplists:get_bool(new, Opts) of
@@ -473,8 +452,6 @@ toc(Dir) ->
 %% @equiv toc(Dir, Paths, [])
 %% @hidden   Not official yet
 
-%% NEW-OPTIONS: doc_path
-
 toc(Dir, Opts) ->
     Paths = proplists:append_values(doc_path, Opts)
 	++ edoc_lib:find_doc_dirs(),
@@ -482,10 +459,6 @@ toc(Dir, Opts) ->
 
 %% @doc Create a meta-level table of contents.
 %% @hidden   Not official yet
-
-%% INHERIT-OPTIONS: init_context/1
-%% INHERIT-OPTIONS: edoc_lib:run_doclet/2
-%% INHERIT-OPTIONS: edoc_lib:get_doc_env/3
 
 toc(Dir, Paths, Opts0) ->
     Opts = expand_opts(Opts0 ++ [{dir, Dir}]),
@@ -509,8 +482,6 @@ read(File) ->
 %% options.
 %%
 %% @see file/2
-
-%% INHERIT-OPTIONS: get_doc/2, layout/2
 
 -spec read(File, Opts) -> string() when
       File :: filename(),
@@ -544,8 +515,6 @@ layout(Doc) ->
 %% @see run/2
 %% @see read/2
 %% @see file/2
-
-%% INHERIT-OPTIONS: edoc_lib:run_layout/2
 
 -spec layout(Doc, Opts) -> term() when
       Doc :: edoc_module(),
@@ -629,8 +598,6 @@ read_source(Name) ->
 %%
 %% @see get_doc/2
 %% @see //syntax_tools/erl_syntax
-
-%% NEW-OPTIONS: [no_]preprocess (preprocess -> includes, macros)
 
 -spec read_source(File, Opts) -> [syntaxTree()] when
       File :: filename(),
@@ -840,9 +807,6 @@ get_doc(File) ->
 %% @see read/2
 %% @see layout/2
 
-%% INHERIT-OPTIONS: get_doc/3
-%% INHERIT-OPTIONS: edoc_lib:get_doc_env/3
-
 -spec get_doc(File, Options) -> R when
       File :: filename(),
       Options :: proplist(),
@@ -855,9 +819,6 @@ get_doc(File, Opts) ->
 %% @doc Like {@link get_doc/2}, but for a given environment
 %% parameter. `Env' is an environment created by {@link
 %% edoc_lib:get_doc_env/3}.
-
-%% INHERIT-OPTIONS: read_source/2, read_comments/2, edoc_extract:source/5
-%% DEFER-OPTIONS: get_doc/2
 
 -spec get_doc(File, Env, Options) -> R when
       File :: filename(),

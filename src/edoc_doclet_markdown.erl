@@ -124,11 +124,6 @@ title(App, Options) ->
 
 %% @doc Process the individual source files.
 
-%% NEW-OPTIONS: file_suffix, private, hidden
-%% INHERIT-OPTIONS: edoc:layout/2
-%% INHERIT-OPTIONS: edoc:get_doc/3
-%% DEFER-OPTIONS: run/2
-
 sources(Sources, App, Modules, Env, Options) ->
     {Ms, E} = lists:foldl(fun (Src, {Set, Error}) ->
 				  source(Src, App, Env, Set, Error, Options)

@@ -131,12 +131,6 @@
 %%  </dd>
 %% </dl>
 
-%% INHERIT-OPTIONS: title/2
-%% INHERIT-OPTIONS: sources/5
-%% INHERIT-OPTIONS: overview/4
-%% INHERIT-OPTIONS: copy_stylesheet/2
-%% INHERIT-OPTIONS: stylesheet/1
-
 -spec run(edoc_doclet:command(), edoc_doclet:context()) -> ok.
 run(#doclet_gen{}=Cmd, Ctxt) ->
     gen(Cmd#doclet_gen.sources,
@@ -170,9 +164,6 @@ gen(Sources, App, Modules, Ctxt) ->
     end.
 
 
-%% NEW-OPTIONS: title
-%% DEFER-OPTIONS: run/2
-
 title(App, Options) ->
     proplists:get_value(title, Options,
 			if App == no_app ->
@@ -183,11 +174,6 @@ title(App, Options) ->
 
 
 %% Processing the individual source files.
-
-%% NEW-OPTIONS: file_suffix, private, hidden
-%% INHERIT-OPTIONS: edoc:layout/2
-%% INHERIT-OPTIONS: edoc:get_doc/3
-%% DEFER-OPTIONS: run/2
 
 sources(Sources, Dir, Modules, Env, Options) ->
     Suffix = proplists:get_value(file_suffix, Options,
@@ -309,12 +295,6 @@ xhtml_1(Title, CSS, Body) ->
 	    ?NL]
     }.
 
-%% NEW-OPTIONS: overview
-%% INHERIT-OPTIONS: read_file/4
-%% INHERIT-OPTIONS: edoc_lib:run_layout/2
-%% INHERIT-OPTIONS: edoc_extract:file/4
-%% DEFER-OPTIONS: run/2
-
 overview(Dir, Title, Env, Opts) ->
     File = proplists:get_value(overview, Opts,
 			       filename:join(Dir, ?OVERVIEW_FILE)),
@@ -342,9 +322,6 @@ copy_image(Dir) ->
 	    exit(error)
     end.
 
-%% NEW-OPTIONS: stylesheet_file
-%% DEFER-OPTIONS: run/2
-
 copy_stylesheet(Dir, Options) ->
     case proplists:get_value(stylesheet, Options) of
 	undefined ->
@@ -365,9 +342,6 @@ copy_stylesheet(Dir, Options) ->
 	_ ->
 	    ok
     end.
-
-%% NEW-OPTIONS: stylesheet
-%% DEFER-OPTIONS: run/2
 
 stylesheet(Options) ->
     case proplists:get_value(stylesheet, Options) of
@@ -427,8 +401,6 @@ get_attr(_, []) ->
 
 %% Read external source file. Fails quietly, returning empty tag list.
 
-%% INHERIT-OPTIONS: edoc_extract:file/4
-
 read_file(File, Context, Env, Opts) ->
     case edoc_extract:file(File, Context, Env, Opts) of
 	{ok, Tags} ->
@@ -454,9 +426,6 @@ toc(Paths, Ctxt) ->
     app_index_file(Paths, Dir, Env, Opts).
 
 %% TODO: FIXME: it's unclear how much of this is working at all
-
-%% NEW-OPTIONS: title
-%% INHERIT-OPTIONS: overview/4
 
 app_index_file(Paths, Dir, Env, Options) ->
     Title = proplists:get_value(title, Options,"Overview"),

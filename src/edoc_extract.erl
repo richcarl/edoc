@@ -108,9 +108,6 @@ source(Forms, Comments, File, Env, Opts) ->
 %% Note that the actual module name found in the source file will be
 %% used for generating the documentation, creating relative links, etc.
 
-%% INHERIT-OPTIONS: add_macro_defs/3
-%% INHERIT-OPTIONS: edoc_data:module/4
-
 -spec source(Forms, File, Env, Opts) -> R when
       Forms :: erl_syntax:forms(),
       File :: filename(),
@@ -216,9 +213,6 @@ header(Tree, File0, Env, _Opts) ->
     [Entry] = get_tags([Footer#entry{name = header}], Env, File),
     Entry#entry.data.
 
-%% NEW-OPTIONS: def
-%% DEFER-OPTIONS: source/4
-
 add_macro_defs(Defs0, Opts, Env) ->
     Defs = proplists:append_values(def, Opts),
     edoc_macros:check_defs(Defs),
@@ -231,8 +225,6 @@ add_macro_defs(Defs0, Opts, Env) ->
 %% //kernel/file:read_file/1} or the atom 'invalid_unicode'.
 %%
 %% See {@link text/4} for options.
-
-%% INHERIT-OPTIONS: text/4
 
 -spec file(File, Context, Env, Opts) -> {ok, Tags} | {error, Reason} when
       File :: filename(),
@@ -261,9 +253,6 @@ file(File, Context, Env, Opts) ->
 %% edoc_lib:get_doc_env/3}.
 %%
 %% See {@link source/4} for a description of the `def' option.
-
-%% INHERIT-OPTIONS: add_macro_defs/3
-%% DEFER-OPTIONS: source/4
 
 -spec text(Text, Context, Env, Opts) -> Tags when
       Text :: string(),

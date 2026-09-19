@@ -704,9 +704,6 @@ parse_terms_1([], _As, _Vs) ->
 %% `subpackages', `source_suffix'.
 %% @private
 
-%% NEW-OPTIONS: subpackages, source_suffix
-%% DEFER-OPTIONS: edoc:run/2
-
 find_sources(Path, Opts) ->
     Rec = proplists:get_bool(subpackages, Opts),
     Ext = proplists:get_value(source_suffix, Opts, ?DEFAULT_SOURCE_SUFFIX),
@@ -788,9 +785,6 @@ find_doc_dirs([]) ->
 %% that relative references will be created. For apps, the empty string
 %% implies that we use the default app-path.
 
-%% NEW-OPTIONS: doc_path
-%% DEFER-OPTIONS: get_doc_env/3
-
 get_doc_links(App, Modules, Opts) ->
     Path = proplists:append_values(doc_path, Opts) ++ find_doc_dirs(),
     Ds = [{P, read_info_file(P)} || P <- Path],
@@ -838,10 +832,6 @@ get_doc_env(Opts) ->
 %% @see edoc_extract:source/4
 %% @see edoc:get_doc/3
 
-%% NEW-OPTIONS: file_suffix, app_default
-%% INHERIT-OPTIONS: get_doc_links/4
-%% DEFER-OPTIONS: edoc:run/2
-
 -spec get_doc_env(App, Modules, Options) -> edoc:env() when
       App :: atom() | no_app,
       Modules :: [module()],
@@ -864,18 +854,12 @@ get_doc_env(App, Modules, Opts) ->
 
 %% @doc See {@link edoc:run/2} for a description of the `doclet' option.
 
-%% NEW-OPTIONS: doclet
-%% DEFER-OPTIONS: edoc:run/2
-
 %% @private
 run_doclet(Fun, Opts) ->
     run_plugin(doclet, ?DEFAULT_DOCLET, Fun, Opts).
 
 %% @doc See {@link edoc:layout/2} for a description of the `layout'
 %% option.
-
-%% NEW-OPTIONS: layout
-%% DEFER-OPTIONS: edoc:layout/2
 
 %% @private
 run_layout(Fun, Opts) ->

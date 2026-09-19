@@ -81,11 +81,6 @@ gen(Sources, _App, Modules, Ctxt) ->
 
 %% @doc Process the individual source files.
 
-%% NEW-OPTIONS: file_suffix, private, hidden
-%% INHERIT-OPTIONS: edoc:layout/2
-%% INHERIT-OPTIONS: edoc:get_doc/3
-%% DEFER-OPTIONS: run/2
-
 sources(Sources, Dir, Modules, Env, Options) ->
     Suffix = proplists:get_value(file_suffix, Options, ?DEFAULT_FILE_SUFFIX),
     {Ms, E} = lists:foldl(fun (Src, {Set, Error}) ->

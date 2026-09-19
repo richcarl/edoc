@@ -84,9 +84,6 @@
 %%   line CDATA #REQUIRED>
 %% <!ELEMENT functions (function+)>
 
-%% NEW-OPTIONS: private, hidden, todo
-%% DEFER-OPTIONS: edoc_extract:source/4
-
 -spec module(Module, Entries, Env, Opts) -> edoc:edoc_module() when
       Module :: edoc:module_meta(),
       Entries :: [edoc:entry()],
