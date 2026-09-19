@@ -70,7 +70,7 @@ warning(Where, S, Vs) ->
     warning(0, Where, S, Vs).
 
 warning(L, Where, S, Vs) ->
-    report(L, Where, "warning: " ++ S, Vs).
+    report(L, Where, "Warning: " ++ S, Vs).
 
 report(S, Vs) ->
     report([], S, Vs).
@@ -79,24 +79,26 @@ report(Where, S, Vs) ->
     report(0, Where, S, Vs).
 
 report(L, Where, S, Vs) ->
-    io:put_chars(where(Where)),
-    if is_integer(L), L > 0 ->
-	    io:fwrite("at line ~w: ", [L]);
-       true ->
-	    ok
-    end,
-    io:fwrite(S, Vs),
+    Message = io_lib:fwrite(S, Vs),
+    io:put_chars([where(Where, L), Message, where_extra(Where)]),
     io:nl().
 
-where({File, module}) ->
-    io_lib:fwrite("~ts, in module header: ", [File]);
-where({File, footer}) ->
-    io_lib:fwrite("~ts, in module footer: ", [File]);
-where({File, header}) ->
-    io_lib:fwrite("~ts, in header file: ", [File]);
-where({File, {F, A}}) ->
-    io_lib:fwrite("~ts, function ~ts/~w: ", [File, F, A]);
-where([]) ->
-    io_lib:fwrite("~s: ", [?APPLICATION]);
-where(File) when is_list(File) ->
-    File ++ ": ".
+where({File, _}, L) when is_integer(L), L > 0 ->
+    io_lib:fwrite("~ts:~w: ", [File, L]);
+where([], _) ->
+    io_lib:fwrite("~ts: ", [?APPLICATION]);
+where(File, L) when is_integer(L), L > 0 ->
+    io_lib:fwrite("~ts:~w: ", [File, L]);
+where(File, _) ->
+    io_lib:fwrite("~ts: ", [File]).
+
+where_extra({_, module}) ->
+    ", in module header";
+where_extra({_, footer}) ->
+    ", in module footer";
+where_extra({_, header}) ->
+    ", in header file";
+where_extra({_, {F, A}}) ->
+    io_lib:fwrite(", in function ~ts/~w", [F, A]);
+where_extra(_) ->
+    "".
