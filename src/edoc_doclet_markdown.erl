@@ -47,7 +47,6 @@
 
 -export([run/2]).
 
-%% @headerfile "../include/edoc_doclet.hrl"
 -include("../include/edoc_doclet.hrl").
 
 -include_lib("xmerl/include/xmerl.hrl").

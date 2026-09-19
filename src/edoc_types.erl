@@ -34,8 +34,6 @@
          to_ref/1, to_xml/3, to_label/1, arg_names/1, set_arg_names/2,
          arg_descs/1, range_desc/1]).
 
-%% @headerfile "edoc_types.hrl"
-
 -include("edoc_types.hrl").
 -include_lib("xmerl/include/xmerl.hrl").
 

@@ -39,7 +39,6 @@
 
 -import(edoc_report, [report/3, warning/3]).
 
-%% %% @headerfile "edoc.hrl" (disabled until it can be made private)
 -include("edoc.hrl").
 
 -type filename() :: file:filename().
