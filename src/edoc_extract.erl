@@ -363,7 +363,7 @@ preprocess_forms_2(F, Fs) ->
         {attribute, {record, _}} ->
             [F | preprocess_forms_1(Fs)];
         {attribute, {N, _}} ->
-            case edoc_specs:is_tag(N) of
+            case N =:= doc orelse N =:= moduledoc orelse edoc_specs:is_tag(N) of
                 true ->
                     [F | preprocess_forms_1(Fs)];
                 false ->
@@ -380,29 +380,44 @@ preprocess_forms_2(F, Fs) ->
 %% in the list.
 
 collect(Fs, Mod) ->
-    Acc = #{comments => [], callbacks => [], specs => [], types => [],
+    Acc = #{docs => [], comments => [], callbacks => [], specs => [], types => [],
 	    records => [], functions => [], header => undefined},
     collect(Fs, Acc, Mod).
 
 collect([F | Fs], Acc, Mod) ->
-    #{comments := Cs, types := Ts, records := Rs, header := Header} = Acc,
+    #{docs := Ds, comments := Cs, types := Ts, records := Rs, header := Header} = Acc,
     case erl_syntax_lib:analyze_form(F) of
-	comment ->
-	    collect(Fs, store(comments, F, Acc), Mod);
 	{function, Name} ->
 	    L = get_line(F),
 	    Export = ordsets:is_element(Name, Mod#module.exports),
 	    Args = parameters(erl_syntax:function_clauses(F)),
 	    Function = #entry{name = Name, args = Args, line = L,
 			      export = Export,
-			      data = {comment_text(Cs), [], [], Ts, Rs}},
-	    NewAcc = Acc#{comments := [], types := [], records := []},
+			      data = {get_text(Ds, Cs), [], [], Ts, Rs}},
+	    NewAcc = Acc#{docs := [], comments := [], types := [], records := []},
 	    collect(Fs, store(functions, Function, NewAcc), Mod);
+	comment ->
+	    collect(Fs, store(comments, F, Acc), Mod);
+	{attribute, {moduledoc, Doc}} when Header =/= undefined ->
+            %% moduledoc must follow module decl; replaces any @doc-comment
+	    L = get_line(F),
+	    #entry{data = Data} = Header,
+            case get_text([{L, Doc}], []) of
+               [] ->
+                    collect(Fs, Acc, Mod);
+                Texts ->
+                    NewData = setelement(1, Data, Texts),
+                    NewHeader = Header#entry{line = L, data = NewData},
+                    collect(Fs, store(header, NewHeader, Acc), Mod)
+            end;
+	{attribute, {doc, Doc}} ->
+	    L = get_line(F),
+	    collect(Fs, store(docs, {L, Doc}, Acc), Mod);
 	{attribute, {module, _}} when Header =:= undefined ->
 	    L = get_line(F),
-	    NewAcc = Acc#{comments := [], specs := [], types := [], records := []},
+	    NewAcc = Acc#{docs := [], comments := [], specs := [], types := [], records := []},
 	    NewHeader = #entry{name = module, line = L,
-			       data = {comment_text(Cs), [], [], Ts, Rs}},
+			       data = {get_text([], Cs), [], [], Ts, Rs}},
 	    collect(Fs, store(header, NewHeader, NewAcc), Mod);
 	{attribute, {record, {_Name, Fields}}} ->
 	    case is_typed_record(Fields) of
@@ -414,11 +429,13 @@ collect([F | Fs], Acc, Mod) ->
 	{attribute, {N, _}} ->
 	    case edoc_specs:tag(N) of
 		callback ->
-		    collect(Fs, store(callbacks, F, Acc), Mod);
+		    collect(Fs, store(callbacks, F, Acc#{docs := []}), Mod);
 		spec ->
 		    collect(Fs, store(specs, F, Acc), Mod);
 		type ->
-		    collect(Fs, store(types, F, Acc), Mod);
+		    collect(Fs, store(types, F, Acc#{docs := []}), Mod);
+		opaque ->
+		    collect(Fs, Acc#{docs := []}, Mod);
 		unknown ->
 		    %% Drop current seen comments.
 		    NewAcc = Acc#{comments := [], specs := [], types := []},
@@ -430,9 +447,9 @@ collect([F | Fs], Acc, Mod) ->
 	    collect(Fs, NewAcc, Mod)
     end;
 collect([], Acc, Mod) ->
-    #{comments := Cs, callbacks := Cbs, specs := Ss, types := Ts,
+    #{docs := Ds, comments := Cs, callbacks := Cbs, specs := Ss, types := Ts,
       records := Rs, functions := As, header := Header} = Acc,
-    Footer = #entry{name = footer, data = {comment_text(Cs), Cbs, [], Ts, Rs}},
+    Footer = #entry{name = footer, data = {get_text(Ds, Cs), Cbs, [], Ts, Rs}},
     As1 = lists:reverse(As),
     As2 = insert_specs(As1, Ss, Mod),
     if Header =:= undefined ->
@@ -451,8 +468,57 @@ is_typed_record([]) ->
 is_typed_record([{_, {_, Type}} | Fs]) ->
     Type =/= none orelse is_typed_record(Fs).
 
-%% Returns a list of simplified comment information (position and text)
-%% for a list of abstract comments. The order of elements is reversed.
+%% Returns a list of simplified doc information (position and text) for a list
+%% of doc entries and/or abstract comments. The order of elements is reversed.
+%% If -doc or -moduledoc texts are present, comments docs are ignored.
+
+get_text(Ds, Cs) ->
+    case doc_text(Ds) of
+        [] -> comment_text(Cs);
+        Texts ->
+            Texts
+    end.
+
+doc_text(Ds) ->
+    doc_text(Ds, []).
+
+doc_text([{L, Doc} | Ds], Ss) ->
+    case Doc of
+        _ when is_binary(Doc) orelse is_list(Doc) ->
+            doc_text(Ds, [#comment{line = L, text = ["@markdown " ++ Doc]} | Ss]);
+       false ->
+            doc_text(Ds, [#comment{line = L, text = ["@hidden"]} | Ss]);
+       #{} ->
+            doc_text_meta(maps:to_list(Doc), L, Ds, Ss);
+       _ ->
+            doc_text(Ds, Ss)
+    end;
+doc_text([], Ss) ->
+    Ss.
+
+doc_text_meta([{deprecated, Text} | Es], L, Ds, Ss) ->
+    Cs = ensure_string(Text),
+    doc_text_meta(Es, L, Ds, [#comment{line = L, text = ["@deprecated " ++ Cs]} | Ss]);
+doc_text_meta([{since, Text} | Es], L, Ds, Ss) ->
+    Cs = ensure_string(Text),
+    doc_text_meta(Es, L, Ds, [#comment{line = L, text = ["@since " ++ Cs]} | Ss]);
+doc_text_meta([{group, Text} | Es], L, Ds, Ss) ->
+    Cs = ensure_string(Text),
+    doc_text_meta(Es, L, Ds, [#comment{line = L, text = ["@group " ++ Cs]} | Ss]);
+doc_text_meta([{equiv, {F, A}} | Es], L, Ds, Ss) when is_atom(F), is_integer(A), A >= 0 ->
+    doc_text_meta(Es, L, Ds, [#comment{line = L, text = ["@equiv " ++ atom_to_list(F) ++ "/" ++ integer_to_list(A)]} | Ss]);
+doc_text_meta([{equiv, Text} | Es], L, Ds, Ss) when is_list(Text) orelse is_binary(Text) ->
+    Cs = ensure_string(Text),
+    doc_text_meta(Es, L, Ds, [#comment{line = L, text = ["@equiv " ++ Cs]} | Ss]);
+doc_text_meta([{equiv, Term} | Es], L, Ds, Ss) ->
+    doc_text_meta(Es, L, Ds, [#comment{line = L, text = ["@equiv " ++ unicode:characters_to_list(erl_pp:expr(Term))]} | Ss]);
+doc_text_meta([], _L, Ds, Ss) ->
+    doc_text(Ds, Ss).
+
+ensure_string(Text) when is_binary(Text) ->
+    unicode:characters_to_list(Text);
+ensure_string(Text) when is_list(Text) ->
+    Text.
 
 comment_text(Cs) ->
     comment_text(Cs, []).

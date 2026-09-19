@@ -77,6 +77,7 @@ tags() ->
      {copyright, text, [module,overview,single]},
      {deprecated, xml, [module,function,single]},
      {doc, xml,	[module,function,overview,single]},
+     {markdown, markdown, [module,function,overview,single]},
      {docfile, fun parse_file/4, All},
      {'end', text, All},
      {equiv, fun parse_expr/4, [function,single]},
@@ -278,6 +279,9 @@ parse_tags([#tag{name = Name} = T | Ts], How, Env, Where, Ts1) ->
 	xml ->
 	    [T1] = parse_tag(T, fun parse_xml/4, Env, Where),
 	    parse_tags(Ts, How, Env, Where, [T1 | Ts1]);
+	markdown ->
+	    [T1] = parse_tag(T, fun parse_md/4, Env, Where),
+	    parse_tags(Ts, How, Env, Where, [T1#tag{name=doc} | Ts1]);
 	F when is_function(F) ->
 	    Ts2 = parse_tag(T, F, Env, Where),
 	    parse_tags(Ts, How, Env, Where, lists:reverse(Ts2, Ts1))
@@ -300,6 +304,9 @@ parse_tag(T, F, Env, Where) ->
 
 %% parser functions for the built-in content types. They also perform
 %% some sanity checks on the results.
+
+parse_md(Data, Line, Env, Where) ->
+    parse_xml("text/markdown:\n" ++ Data, Line-1, Env, Where).
 
 parse_xml(Data, Line, _Env, _Where) ->
     edoc_wiki:parse_xml(Data, Line).

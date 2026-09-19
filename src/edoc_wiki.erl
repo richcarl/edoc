@@ -83,6 +83,8 @@
 
 %% Parsing Wiki-XML with pre-and post-expansion.
 
+parse_xml("text/markdown:" ++ Data, Line) ->
+    par(parse_xml_1(expand_md(Data, Line), Line));
 parse_xml(Data, Line) ->
     par(parse_xml_1(expand_text(Data, Line), Line)).
 
@@ -100,6 +102,34 @@ parse_xml_1(Text, Line) ->
 	Other ->
 	    throw_error(Line, {"nocatch in XML parser: ~P", [Other, 10]})
     end.
+
+%% Expand Markdown instead of EDoc wiki syntax
+expand_md(Cs, _L) ->
+    Docs = shell_docs_markdown:parse_md(unicode:characters_to_binary(Cs)),
+    unicode:characters_to_list(md_to_xml(Docs)).
+
+md_to_xml([E | Es]) ->
+    [md_to_xml(E) | md_to_xml(Es)];
+md_to_xml(Bin) when is_binary(Bin) ->
+    bin_to_xml(Bin);
+md_to_xml({T, [], Es}) ->
+    S = atom_to_list(T),
+    [$<, S, $>, md_to_xml(Es), $<, $/, S, $>];
+md_to_xml({T, As, Es}) ->
+    S = atom_to_list(T),
+    [$<, S, unicode:characters_to_list(attrs_to_xml(As)), $>, md_to_xml(Es), $<, $/, S, $>];
+md_to_xml([]) ->
+    [].
+
+bin_to_xml(Text) ->
+    xmerl:export_simple_content([unicode:characters_to_list(Text)], xmerl_xml).
+
+
+attrs_to_xml([{A, Bin} | As]) ->
+    [$\s, atom_to_list(A), $=, $", bin_to_xml(Bin), $"
+     | attrs_to_xml(As)];
+attrs_to_xml([]) ->
+    [].
 
 %% Expand wiki stuff in arbitrary text.
 
