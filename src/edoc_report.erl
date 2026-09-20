@@ -55,9 +55,7 @@ error(Where, What) ->
 error(Line, Where, S) when is_list(S) ->
     report(Line, Where, S, []);
 error(Line, Where, {S, D}) when is_list(S) ->
-    report(Line, Where, S, D);
-error(Line, Where, {format_error, M, D}) ->
-    report(Line, Where, M:format_error(D), []).
+    report(Line, Where, S, D).
 
 warning(S) ->
     warning(S, []).
@@ -82,12 +80,14 @@ report(L, Where, S, Vs) ->
     io:put_chars([where(Where, L), Message, where_extra(Where)]),
     io:nl().
 
-where({File, _}, L) when is_integer(L), L > 0 ->
-    io_lib:fwrite("~ts:~w: ", [File, L]);
+where({File, _}, L) when is_list(File) ->
+    where(File, L);
 where([], _) ->
     io_lib:fwrite("~ts: ", [?APPLICATION]);
 where(File, L) when is_integer(L), L > 0 ->
     io_lib:fwrite("~ts:~w: ", [File, L]);
+where(File, {L, C}) when is_integer(C), C >= 0, is_integer(L), L > 0 ->
+    io_lib:fwrite("~ts:~w:~w: ", [File, L, C]);
 where(File, _) ->
     io_lib:fwrite("~ts: ", [File]).
 

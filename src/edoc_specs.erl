@@ -204,7 +204,7 @@ get_name_and_last_line(F) ->
     case edoc_specs:tag(Name) of
 	callback -> ok;
 	type -> ok;
-	_ -> erlang:error(invalid_tag, [F])
+	_ -> error(invalid_tag, [F])
     end,
     Anno = erl_syntax:get_pos(F),
     Attr = {attribute, Anno, Name, Data},

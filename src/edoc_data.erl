@@ -31,8 +31,7 @@
 
 -module(edoc_data).
 
--compile([{nowarn_possibly_unsafe_function, {erlang, list_to_atom, 1}},
-          nowarn_deprecated_catch]).
+-compile([{nowarn_possibly_unsafe_function, {erlang, list_to_atom, 1}}]).
 
 -export([module/4, overview/4, type/3]).
 
@@ -357,12 +356,13 @@ deprecated(Desc) ->
     [{deprecated, description(Desc)}].
 
 get_expr_ref(Expr) ->
-    case catch {ok, erl_syntax_lib:analyze_application(Expr)} of
-	{ok, {F, A}} when is_atom(F), is_integer(A) ->
+    try erl_syntax_lib:analyze_application(Expr) of
+	{F, A} when is_atom(F), is_integer(A) ->
 	    edoc_refs:function(F, A);
- 	{ok, {M, {F, A}}} when is_atom(M), is_atom(F), is_integer(A) ->
- 	    edoc_refs:function(M, F, A);
-	_ ->
+        {M, {F, A}} when is_atom(M), is_atom(F), is_integer(A) ->
+            edoc_refs:function(M, F, A)
+    catch
+	_:_ ->
 	    none
     end.
 

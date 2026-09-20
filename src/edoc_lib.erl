@@ -29,8 +29,7 @@
 
 -module(edoc_lib).
 
--compile([{nowarn_possibly_unsafe_function, {erlang, list_to_atom, 1}},
-          nowarn_deprecated_catch]).
+-compile([{nowarn_possibly_unsafe_function, {erlang, list_to_atom, 1}}]).
 
 -export([count/2, lines/1, split_at/2, split_at_stop/1,
 	 split_at_space/1, filename/1, transpose/1, segment/2,
@@ -42,7 +41,7 @@
 	 read_info_file/1, get_doc_env/1, get_doc_env/3, copy_file/2,
 	 run_doclet/2, run_layout/2,
 	 simplify_path/1, timestr/1, datestr/1, read_encoding/2,
-	 infer_module_app/1]).
+	 infer_module_app/1, parse_error/2]).
 
 -import(edoc_report, [report/2, warning/2]).
 
@@ -326,12 +325,12 @@ parse_expr(S, L) ->
 		{ok, [Expr]} ->
 		    Expr;
  		{error, {999999, erl_parse, _}} ->
- 		    throw_error(eof, L);
+                    parse_error(L, "unexpected end of expression");
  		{error, E} ->
- 		    throw_error(E, L)
+ 		    parse_error(L, E)
 	    end;
-	{error, E, _} ->
-	    throw_error(E, L)
+	{error, {L1, M, Desc}, _} ->
+            parse_error(L1, M:format_error(Desc))
     end.
 
 
@@ -362,7 +361,7 @@ scan_name([$< | Cs], L, I, As) ->
 	    {Cs1, I1} = scan_email(Cs, L, set_name(I, As), []),
 	    scan_name(Cs1, L, I1, []);
 	_ ->
-	    throw_error("multiple '<...>' sections", L)
+	    parse_error(L, "multiple '<...>' sections")
     end;
 scan_name([$[ | Cs], L, I, As) ->
     case I#info.uri of
@@ -370,7 +369,7 @@ scan_name([$[ | Cs], L, I, As) ->
 	    {Cs1, I1} = scan_uri(Cs, L, set_name(I, As), []),
 	    scan_name(Cs1, L, I1, []);
 	_ ->
-	    throw_error("multiple '[...]' sections", L)
+	    parse_error(L, "multiple '[...]' sections")
     end;
 scan_name([$\n | Cs], L, I, As) ->
     scan_name(Cs, L + 1, I, [$\n | As]);
@@ -386,7 +385,7 @@ scan_uri([$\n | Cs], L, I, As) ->
 scan_uri([C | Cs], L, I, As) ->
     scan_uri(Cs, L, I, [C | As]);
 scan_uri([], L, _I, _As) ->
-    throw_error({missing, $]}, L).
+    parse_error(L, "missing ']'").
 
 scan_email([$> | Cs], _L, I, As) ->
     {Cs, I#info{email = strip_and_reverse(As)}};
@@ -395,7 +394,7 @@ scan_email([$\n | Cs], L, I, As) ->
 scan_email([C | Cs], L, I, As) ->
     scan_email(Cs, L, I, [C | As]);
 scan_email([], L, _I, _As) ->
-    throw_error({missing, $>}, L).
+    parse_error(L, "missing '>'").
 
 set_name(I, As) ->
     case I#info.name of
@@ -625,11 +624,10 @@ read_file(File) ->
     case file:read_file(File) of
 	{ok, Bin} ->
             Enc = edoc_lib:read_encoding(File, []),
-            case catch unicode:characters_to_list(Bin, Enc) of
-                String when is_list(String) ->
-                    {ok, String};
-                _ ->
-                    {error, invalid_unicode}
+            try unicode:characters_to_list(Bin, Enc) of
+                String -> {ok, String}
+            catch
+                _ -> {error, invalid_unicode}
             end;
 	{error, Reason} -> {error, Reason}
     end.
@@ -870,12 +868,15 @@ run_plugin(Name, Default, Fun, Opts) ->
 
 run_plugin(Name, Key, Default, Fun, Opts) when is_atom(Name) ->
     Module = get_plugin(Key, Default, Opts),
-    case catch {ok, Fun(Module)} of
-	{ok, Value} ->
-	    Value;
-	R ->
-	    report("error in ~ts '~w': ~tP", [Name, Module, R, 20]),
-	    exit(error)
+    try Fun(Module) of
+	Value -> Value
+    catch
+        {error, Reason} ->
+	    report("error in ~ts '~w': ~tw", [Name, Module, Reason]),
+	    throw({error, plugin});
+	C:R:T ->
+	    report("unexpected error in ~ts '~w': ~tw: ~tP: ~tP", [Name, Module, C, R, 15, T, 8]),
+	    throw({error, plugin})
     end.
 
 get_plugin(Key, Default, Opts) ->
@@ -892,18 +893,11 @@ get_plugin(Key, Default, Opts) ->
 %% Error handling
 
 -type line() :: erl_anno:line().
--type err()  :: 'eof'
-	      | {'missing', char()}
-	      | {line(), atom(), string()}
+-type err()  :: {line(), atom(), string()}
 	      | string().
 
--spec throw_error(err(), line()) -> no_return().
+%% For use by tag parsers to abort with an error; to be caught in parse_tag()
+-spec parse_error(line(), err()) -> no_return().
 
-throw_error({missing, C}, L) ->
-    throw_error({"missing '~c'", [C]}, L);
-throw_error(eof, L) ->
-    throw({error,L,"unexpected end of expression"});
-throw_error({L, M, D}, _L) ->
-    throw({error,L,{format_error,M,D}});
-throw_error(D, L) ->
-    throw({error, L, D}).
+parse_error(L, D) ->
+    throw({parse_error, L, D}).

@@ -72,7 +72,7 @@ run(#doclet_gen{} = Cmd, Ctxt) ->
             erlang:raise(E,R,St)
     end;
 run(#doclet_toc{} = _Cmd, _Ctxt) ->
-    erlang:error(not_implemented).
+    error(not_implemented).
 
 gen(Sources, App, Modules, Ctxt) ->
     Dir = Ctxt#doclet_context.dir,

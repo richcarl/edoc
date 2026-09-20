@@ -33,8 +33,7 @@
 %% `tokens' function *always* returns `{more, Continuation}' unless an
 %% error occurs.
 
--compile([{nowarn_possibly_unsafe_function, {erlang, list_to_atom, 1}},
-          nowarn_deprecated_catch]).
+-compile([{nowarn_possibly_unsafe_function, {erlang, list_to_atom, 1}}]).
 
 -export([string/1,string/2,format_error/1]).
 
@@ -114,10 +113,11 @@ scan1([$$|Cs], Toks, Pos) ->			% Character constant
 scan1([$'|Cs0], Toks, Pos) ->				% Quoted atom
     case scan_string(Cs0, $', Pos) of
 	{S,Cs1,Pos1} ->
-	    case catch list_to_atom(S) of
-		A when is_atom(A) ->
-		    scan1(Cs1, [{atom,Pos,A}|Toks], Pos1);
-		_Error -> scan_error({illegal,atom}, Pos)
+	    try list_to_atom(S) of
+		A ->
+		    scan1(Cs1, [{atom,Pos,A}|Toks], Pos1)
+            catch
+		_:_ -> scan_error({illegal,atom}, Pos)
 	    end;
 	{error, premature_end} ->
 	    scan_error({string,$',Cs0}, Pos);
@@ -177,10 +177,11 @@ scan_variable(C, Cs, Toks, Pos) ->
 	"_" ->
             scan1(Cs1, [{an_var,Pos,'_'}|Toks], Pos);
 	_ ->
-	    case catch list_to_atom(W) of
-		A when is_atom(A) ->
-		    scan1(Cs1, [{var,Pos,A}|Toks], Pos);
-		_ ->
+	    try list_to_atom(W) of
+		A ->
+		    scan1(Cs1, [{var,Pos,A}|Toks], Pos)
+            catch
+		_:_ ->
 		    scan_error({illegal,variable}, Pos)
 	    end
     end.
@@ -188,15 +189,16 @@ scan_variable(C, Cs, Toks, Pos) ->
 scan_atom(C, Cs, Toks, Pos) ->
     {Wcs,Cs1} = scan_name(Cs, []),
     W = [C|reverse(Wcs)],
-    case catch list_to_atom(W) of
-	A when is_atom(A) ->
+    try list_to_atom(W) of
+	A ->
 	    case reserved(A) of
 		true ->
 		    scan1(Cs1, [{A,Pos}|Toks], Pos);
 		false ->
 		    scan1(Cs1, [{atom,Pos,A}|Toks], Pos)
-	    end;
-	_ ->
+	    end
+    catch
+	_:_ ->
 	    scan_error({illegal,token}, Pos)
     end.
 
@@ -308,10 +310,13 @@ scan_escape([], _Pos) ->
 scan_hex([C | Cs], Pos, HCs) when ?HEX(C) ->
     scan_hex(Cs, Pos, [C | HCs]);
 scan_hex([$} | Cs], Pos, HCs) ->
-    case catch erlang:list_to_integer(lists:reverse(HCs), 16) of
+    try erlang:list_to_integer(lists:reverse(HCs), 16) of
         Val when ?UNICODE(Val) ->
             {Val,Cs,Pos};
         _ ->
+            {error, undefined_escape_sequence}
+    catch
+        _:_ ->
             {error, undefined_escape_sequence}
     end;
 scan_hex(_Cs, _Pos, _HCs) ->
@@ -371,10 +376,11 @@ scan_after_fraction([$E|Cs], Ncs, Toks, SPos, CPos) ->
 scan_after_fraction([$e|Cs], Ncs, Toks, SPos, CPos) ->
     scan_exponent(Cs, [$e|Ncs], Toks, SPos, CPos);
 scan_after_fraction(Cs, Ncs, Toks, SPos, CPos) ->
-    case catch list_to_float(reverse(Ncs)) of
-	N when is_float(N) ->
-	    scan1(Cs, [{float,SPos,N}|Toks], CPos);
-	_Error -> scan_error({illegal,float}, SPos)
+    try list_to_float(reverse(Ncs)) of
+	N ->
+	    scan1(Cs, [{float,SPos,N}|Toks], CPos)
+    catch
+	_:_ -> scan_error({illegal,float}, SPos)
     end.
 
 %% scan_exponent(CharList, NumberCharStack, TokenStack, StartPos, CurPos)
@@ -389,10 +395,11 @@ scan_exponent(Cs, Ncs, Toks, SPos, CPos) ->
 
 scan_exponent1([C|Cs0], Ncs0, Toks, SPos, CPos) when C >= $0, C =< $9 ->
     {Ncs,Cs,CPos1} = scan_integer(Cs0, [C|Ncs0], CPos),
-    case catch list_to_float(reverse(Ncs)) of
-	N when is_float(N) ->
-	    scan1(Cs, [{float,SPos,N}|Toks], CPos1);
-	_Error -> scan_error({illegal,float}, SPos)
+    try list_to_float(reverse(Ncs)) of
+	N ->
+	    scan1(Cs, [{float,SPos,N}|Toks], CPos1)
+    catch
+	_:_ -> scan_error({illegal,float}, SPos)
     end;
 scan_exponent1(_, _, _, _, CPos) ->
     scan_error(float, CPos).

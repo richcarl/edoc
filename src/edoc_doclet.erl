@@ -36,8 +36,6 @@
 
 -module(edoc_doclet).
 
--compile(nowarn_deprecated_catch).
-
 -export([run/2]).
 
 -import(edoc_report, [report/2, warning/2]).
@@ -159,7 +157,7 @@ gen(Sources, App, Modules, Ctxt) ->
     copy_image(Dir),
     %% handle postponed error during processing of source files
     case Error of
-	true -> exit(error);
+	true -> exit({error, doclet_gen});
 	false -> ok
     end.
 
@@ -195,8 +193,8 @@ sources(Sources, Dir, Modules, Env, Options) ->
 source({M, Name, Path}, Dir, Suffix, Env, Set, Private, Hidden,
        Error, Options) ->
     File = filename:join(Path, Name),
-    case catch {ok, edoc:get_doc(File, Env, Options)} of
-	{ok, {Module, Doc}} ->
+    try edoc:get_doc(File, Env, Options) of
+	{Module, Doc} ->
 	    check_name(Module, M, File),
 	    case ((not is_private(Doc)) orelse Private)
 		andalso ((not is_hidden(Doc)) orelse Hidden) of
@@ -208,9 +206,16 @@ source({M, Name, Path}, Dir, Suffix, Env, Set, Private, Hidden,
 		    {sets:add_element(Module, Set), Error};
 		false ->
 		    {Set, Error}
-	    end;
-	R ->
-	    report("skipping source file '~ts': ~tP", [File, R, 15]),
+	    end
+    catch
+	{error, Reason} ->
+	    report("skipping source file '~ts': ~tw", [File, Reason]),
+	    {Set, true};
+	C:Reason:T when C =:= throw orelse C =:= exit ->
+	    report("BAD EXCEPTION skipping source file '~ts': ~tw: ~tP", [File, Reason, T, 12]),
+	    {Set, true};
+	C:R:T ->
+	    report("skipping source file '~ts': unexpected error: ~tw: ~tP: ~tP", [File, C, R, 15, T, 8]),
 	    {Set, true}
     end.
 

@@ -45,8 +45,6 @@
 
 -module(edoc_run).
 
--compile(nowarn_deprecated_catch).
-
 -export([file/1, application/1, files/1, toc/1]).
 
 -compile({no_auto_import,[error/1]}).
@@ -152,17 +150,17 @@ invalid_args(Where, Args) ->
 
 run(F) ->
     wait_init(),
-    case catch {ok, F()} of
-	{ok, _} ->
-	    shutdown_ok();
-	{'EXIT', E} ->
-	    report("edoc terminated abnormally: ~tP", [E, 10]),
-	    shutdown_error();
-	Thrown ->
-	    report("internal error: throw without catch in edoc: ~tP",
-		   [Thrown, 15]),
+    try F() of
+        _ -> init:stop()
+    catch
+	C:R:T ->
+	    report("edoc terminated abnormally: ~tw: ~tP: ~tP", [C, R, 10, T, 12]),
 	    shutdown_error()
     end.
+
+-spec shutdown_error() -> no_return().
+shutdown_error() ->
+    init:stop(1).
 
 wait_init() ->
     case erlang:whereis(code_server) of
@@ -173,21 +171,6 @@ wait_init() ->
 	    ok
     end.
 
-%% When and if a function init:stop/1 becomes generally available, we
-%% can use that instead of delay-and-pray when there is an error.
-
--spec shutdown_ok() -> no_return().
-shutdown_ok() ->
-    %% shut down emulator nicely, signalling "normal termination"
-    init:stop().
-
--spec shutdown_error() -> no_return().
-shutdown_error() ->
-    %% delay 1 second to allow I/O to finish
-    receive after 1000 -> ok end,
-    %% stop emulator the hard way with a nonzero exit value
-    halt(1).
-
 parse_args([A | As]) when is_atom(A) ->
     [parse_arg(atom_to_list(A)) | parse_args(As)];
 parse_args([A | As]) ->
@@ -196,16 +179,17 @@ parse_args([]) ->
     [].
 
 parse_arg(A) ->
-    case catch {ok, edoc_lib:parse_expr(A, 1)} of
-	{ok, Expr} ->
-	    case catch erl_parse:normalise(Expr) of
-		{'EXIT', _} ->
+    try edoc_lib:parse_expr(A, 1) of
+	Expr ->
+	    try erl_parse:normalise(Expr) of
+		Term -> Term
+            catch
+		_:_ ->
 		    report("bad argument: '~ts':", [A]),
-		    exit(error);
-		Term ->
-		    Term
-	    end;
-	{error, _, D} ->
+		    exit(error)
+	    end
+    catch
+	{parse_error, _, D} ->
 	    report("error parsing argument '~ts'", [A]),
 	    error(D),
 	    exit(error)

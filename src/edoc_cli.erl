@@ -76,14 +76,14 @@ check_opts(Opts) ->
       out_dir := OutDir,
       code_paths := CodePaths,
       include_paths := IncludePaths} = Opts,
-    lists:member(Mode, [default, chunks]) orelse erlang:error(mode, Opts),
+    lists:member(Mode, [default, chunks]) orelse error(mode, Opts),
     if
 	is_list(OutDir) -> ok;
 	OutDir =:= undefined -> ok;
-	OutDir =/= undefined -> erlang:error(out_dir, Opts)
+	OutDir =/= undefined -> error(out_dir, Opts)
     end,
-    is_list(CodePaths) orelse erlang:error(code_paths),
-    is_list(IncludePaths) orelse erlang:error(include_paths),
+    is_list(CodePaths) orelse error(code_paths),
+    is_list(IncludePaths) orelse error(include_paths),
     Opts.
 
 quit(Reason, _Opts) ->

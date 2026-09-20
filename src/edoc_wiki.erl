@@ -70,8 +70,7 @@
 
 -module(edoc_wiki).
 
--compile([{nowarn_unsafe_function, {xmerl_scan, string, 2}},
-          nowarn_deprecated_catch]).
+-compile([{nowarn_unsafe_function, {xmerl_scan, string, 2}}]).
 
 -export([parse_xml/2, expand_text/2]).
 
@@ -91,16 +90,16 @@ parse_xml(Data, Line) ->
 parse_xml_1(Text, Line) ->
     Text1 = "<doc>" ++ Text ++ "</doc>",
     %% Any coding except "utf-8".
-    Opts = [{line, Line}, {encoding, 'iso-8859-1'}],
-    case catch {ok, xmerl_scan:string(Text1, Opts)} of
-	{ok, {E, _}} ->
-	    E#xmlElement.content;
-	{'EXIT', {fatal, {Reason, L, _C}}} ->
-	    throw_error(L, {"XML parse error: ~p", [Reason]});
-	{'EXIT', Reason} ->
-	    throw_error(Line, {"error in XML parser: ~P", [Reason, 10]});
-	Other ->
-	    throw_error(Line, {"nocatch in XML parser: ~P", [Other, 10]})
+    Opts = [{line, Line}, {encoding, 'iso-8859-1'}, {quiet, true}],
+    try xmerl_scan:string(Text1, Opts) of
+	{E, _} ->
+	    E#xmlElement.content
+    catch
+	exit:{fatal, {Reason, {file, _}, {line, L}, {col, C}}} ->
+	    edoc_lib:parse_error({L,C}, {"XML parse error: ~p", [Reason]});
+	C:R:T ->
+	    edoc_lib:parse_error(Line, {"unexpected error in XML parser: ~P",
+                                        [{C,R,T}, 15]})
     end.
 
 %% Expand Markdown instead of EDoc wiki syntax
@@ -201,8 +200,8 @@ expand_heading(Cs, N, L, As) ->
 	       true ->
 		    H1 = lists:duplicate(N+2, $=),
 		    H2 = "==" ++ Es,
-		    throw_error(L, {"heading end marker mismatch: "
-				     "~s...~s", [H1, H2]})
+		    edoc_lib:parse_error(L, {"heading end marker mismatch: "
+                                             "~s...~s", [H1, H2]})
 	    end;
 	_ ->
 	    expand_heading_1(Cs, N, L, As)
@@ -246,7 +245,7 @@ expand_single([$\n = C | Cs], L, As, L0) ->
 expand_single([C | Cs], L, As, L0) ->
     expand_single(Cs, L, [C | As], L0);
 expand_single([], L, _, L0) ->
-    throw_error(L0, {"`-quote ended unexpectedly at line ~w", [L]}).
+    edoc_lib:parse_error(L0, {"`-quote ended unexpectedly at line ~w", [L]}).
 
 %% ``...''
 
@@ -266,7 +265,7 @@ expand_double([$\n = C | Cs], L, As, L0) ->
 expand_double([C | Cs], L, As, L0) ->
     expand_double(Cs, L, [C | As], L0);
 expand_double([], L, _, L0) ->
-    throw_error(L0, {"``-quote ended unexpectedly at line ~w", [L]}).
+    edoc_lib:parse_error(L0, {"``-quote ended unexpectedly at line ~w", [L]}).
 
 %% ```...'''
 
@@ -282,7 +281,7 @@ expand_triple([$\n = C | Cs], L, As, L0) ->
 expand_triple([C | Cs], L, As, L0) ->
     expand_triple(Cs, L, [C | As], L0);
 expand_triple([], L, _, L0) ->
-    throw_error(L0, {"```-quote ended unexpectedly at line ~w", [L]}).
+    edoc_lib:parse_error(L0, {"```-quote ended unexpectedly at line ~w", [L]}).
 
 %% e.g. [file:/...] or [http://... LinkText]
 
@@ -333,7 +332,7 @@ expand_uri([], _, L, _Ss, Us, _As) ->
 
 expand_uri_error(Us, L) ->
     {Ps, _} = edoc_lib:split_at(lists:reverse(Us), $:),
-    throw_error(L, {"reference '[~ts:...' ended unexpectedly", [Ps]}).
+    edoc_lib:parse_error(L, {"reference '[~ts:...' ended unexpectedly", [Ps]}).
 
 
 push_uri(Us, Ss, As) ->
@@ -495,9 +494,3 @@ ptxt_2(Cs, As, Ss) ->
 	false ->
 	    {lists:reverse(As), lists:reverse(Ss), Cs}
     end.
-
-
--spec throw_error(non_neg_integer(), {string(), [_]}) -> no_return().
-
-throw_error(L, D) ->
-    throw({error, L, D}).

@@ -29,8 +29,7 @@
 
 -module(edoc_extract).
 
--compile([{nowarn_possibly_unsafe_function, {erlang, list_to_atom, 1}},
-          nowarn_deprecated_catch]).
+-compile([{nowarn_possibly_unsafe_function, {erlang, list_to_atom, 1}}]).
 
 -export([source/3, source/4, source/5,
 	 header/3, header/4, header/5,
@@ -237,10 +236,11 @@ file(File, Context, Env, Opts) ->
     case file:read_file(File) of
 	{ok, Bin} ->
             Enc = edoc_lib:read_encoding(File,[{in_comment_only, false}]),
-            case catch unicode:characters_to_list(Bin, Enc) of
+            try unicode:characters_to_list(Bin, Enc) of
                 String when is_list(String) ->
-                    {ok, text(String, Context, Env, Opts, File)};
-                _ ->
+                    {ok, text(String, Context, Env, Opts, File)}
+            catch
+                _:_ ->
                     {error, invalid_unicode}
             end;
         {error, _} = Error ->
@@ -289,17 +289,7 @@ text(Text, Context, Env, Opts, Where) ->
       Forms :: erl_syntax:forms(),
       File :: filename().
 get_module_info(Forms, File) ->
-    L = case catch {ok, erl_syntax_lib:analyze_forms(Forms)} of
-	    {ok, L1} ->
-		L1;
-	    syntax_error ->
-		report(File, "syntax error in input", []),
-		exit(error);
-	    {'EXIT', R} ->
-		exit(R);
-	    R ->
-		throw(R)
-	end,
+    L = erl_syntax_lib:analyze_forms(Forms),
     {Name, Vars} = case lists:keyfind(module, 1, L) of
 		       {module, N} when is_atom(N) ->
 			   {N, none};
@@ -553,7 +543,7 @@ error_redundant_specs(Mod, SpecList, Specs) ->
     {_, Line, _, _} = erl_syntax:revert(Form),
     {_, F, A} = RedundantMFA,
     edoc_report:error(Line, {Mod#module.file, {F, A}}, "redundant -spec attribute found, try setting {preprocess, true}"),
-    erlang:exit({redundant_spec, RedundantMFA}).
+    exit({redundant_spec, RedundantMFA}).
 
 insert_specs_(_, [], _) -> [];
 insert_specs_(ModName, [#entry{} = A | As], Specs) ->

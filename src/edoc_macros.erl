@@ -30,8 +30,7 @@
 
 -module(edoc_macros).
 
--compile([{nowarn_possibly_unsafe_function, {erlang, list_to_atom, 1}},
-          nowarn_deprecated_catch]).
+-compile([{nowarn_possibly_unsafe_function, {erlang, list_to_atom, 1}}]).
 
 -export([expand_tags/3, std_macros/1, check_defs/1]).
 
@@ -125,16 +124,13 @@ expand_tags([], _, _, _) ->
     [].
 
 expand_tag(Cs, L, Defs, Env, Where) ->
-    case catch {ok, expand_text(Cs, L, Defs, Env, Where)} of
- 	{ok, Cs1} ->
-	    lists:reverse(Cs1);
- 	{'EXIT', R} ->
-	    exit(R);
-	{error, L1, Error} ->
+    try expand_text(Cs, L, Defs, Env, Where) of
+        Cs1 ->
+	    lists:reverse(Cs1)
+    catch
+	{macro_error, L1, Error} ->
 	    edoc_report:error(L1, Where, Error),
-	    exit(error);
-	Other ->
-	    throw(Other)
+	    exit(error)
     end.
 
 %% Expand macros in arbitrary lines of text.
@@ -191,7 +187,7 @@ expand_macro_def(M, Arg, L, Defs, St, As) ->
     Seen = St#state.seen,
     case sets:is_element(M, Seen) of
 	true ->
-	    throw_error(L, {"recursive macro expansion of {@~s}",
+	    macro_error(L, {"recursive macro expansion of {@~s}",
 			    [M]});
 	false ->
 	    Arg1 = lists:reverse(expand(Arg, L, Defs, St, [])),
@@ -233,15 +229,15 @@ macro_name([$_ | Cs], As, L) ->
 macro_name([$? | Cs], As, L) ->
     macro_name_1(Cs, [$? | As], L);
 macro_name([$\s | _Cs], _As, L) ->
-    throw_error(L, macro_name);
+    macro_error(L, macro_name);
 macro_name([$\t | _Cs], _As, L) ->
-    throw_error(L, macro_name);
+    macro_error(L, macro_name);
 macro_name([$\n | _Cs], _As, L) ->
-    throw_error(L, macro_name);
+    macro_error(L, macro_name);
 macro_name([C | _Cs], As, L) ->
-    throw_error(L, {macro_name, [C | As]});
+    macro_error(L, {macro_name, [C | As]});
 macro_name([], _As, L) ->
-    throw_error(L, macro_name).
+    macro_error(L, macro_name).
 
 macro_name_1([C | Cs], As, L) when C >= $a, C =< $z ->
     macro_name_1(Cs, [C | As], L);
@@ -263,9 +259,9 @@ macro_name_1([$\n | Cs], As, L) ->
 macro_name_1([$} | _] = Cs, As, L) ->
     macro_name_3(Cs, As, L);
 macro_name_1([C | _Cs], As, L) ->
-    throw_error(L, {macro_name, [C | As]});
+    macro_error(L, {macro_name, [C | As]});
 macro_name_1([], _As, L) ->
-    throw_error(L, unterminated_macro).
+    macro_error(L, unterminated_macro).
 
 macro_name_2([$\s | Cs], As, L) ->
     macro_name_2(Cs, As, L);
@@ -276,7 +272,7 @@ macro_name_2([$\n | Cs], As, L) ->
 macro_name_2([_ | _] = Cs, As, L) ->
     macro_name_3(Cs, As, L);
 macro_name_2([], _As, L) ->
-    throw_error(L, unterminated_macro).
+    macro_error(L, unterminated_macro).
 
 macro_name_3(Cs, As, L) ->
     {list_to_atom(lists:reverse(As)), Cs, L}.
@@ -288,15 +284,12 @@ macro_name_3(Cs, As, L) ->
 
 macro_content(Cs, L) ->
     %% If there is an error, we report the start line, not the end line.
-    case catch {ok, macro_content(Cs, [], L, 0)} of
-	{ok, X} ->
-	    X;
-	{'EXIT', R} ->
-	    exit(R);
+    try macro_content(Cs, [], L, 0) of
+	X ->
+	    X
+    catch
 	'end' ->
-	    throw_error(L, unterminated_macro);
-	Other ->
-	    throw(Other)
+	    macro_error(L, unterminated_macro)
     end.
 
 %% @throws 'end'
@@ -326,13 +319,13 @@ macro_content([], _As, _L, _N) ->
 	      | {'macro_name', string()}
 	      | {string(), [string()]}.
 
--spec throw_error(line(), err()) -> no_return().
+-spec macro_error(line(), err()) -> no_return().
 
-throw_error(L, unterminated_macro) ->
-    throw_error(L, {"unexpected end of macro", []});
-throw_error(L, macro_name) ->
-    throw_error(L, {"missing macro name", []});
-throw_error(L, {macro_name, S}) ->
-    throw_error(L, {"bad macro name: '@~s...'", [lists:reverse(S)]});
-throw_error(L, D) ->
-    throw({error, L, D}).
+macro_error(L, unterminated_macro) ->
+    macro_error(L, {"unexpected end of macro", []});
+macro_error(L, macro_name) ->
+    macro_error(L, {"missing macro name", []});
+macro_error(L, {macro_name, S}) ->
+    macro_error(L, {"bad macro name: '@~s...'", [lists:reverse(S)]});
+macro_error(L, D) ->
+    throw({macro_error, L, D}).

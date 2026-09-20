@@ -40,8 +40,7 @@
 %% @end
 -module(edoc_layout_chunks).
 
--compile([{nowarn_possibly_unsafe_function, {erlang, binary_to_atom, 2}},
-          nowarn_deprecated_catch]).
+-compile([{nowarn_possibly_unsafe_function, {erlang, binary_to_atom, 2}}]).
 
 % -behaviour(edoc_layout).
 -export([module/2, overview/2]).
@@ -96,9 +95,6 @@
 
 -type xpath() :: string().
 
--define(caught(Reason, M, F),
-	{_, {Reason, [{M, F, _, _} | _]}}).
-
 %%
 %%' EDoc layout callbacks
 %%
@@ -109,7 +105,7 @@ module(Doc, Options) ->
     %% Require `entries' or fail.
     case lists:keyfind(entries, 1, Options) of
 	{entries, _} -> ok;
-	_ -> erlang:error(no_entries, [Doc, Options])
+	_ -> error(no_entries, [Doc, Options])
     end,
     Chunk = edoc_to_chunk(Doc, Options),
     term_to_binary(Chunk).
@@ -335,14 +331,15 @@ bounded_fun_arity_error(Vars, Spec, SourceFile, Line) ->
 
 annotate_spec_(ArgClauses, {attribute, Pos, spec, Data} = Spec) ->
     {NA, SpecClauses} = Data,
-    case catch lists:zip(ArgClauses, SpecClauses) of
-	?caught(function_clause, lists, zip) ->
-	    edoc_report:warning("cannot annotate spec: "
-				"function and spec clause numbers do not match\n", []),
-	    Spec;
+    try lists:zip(ArgClauses, SpecClauses) of
 	ArgSpecClauses ->
 	    NewData = {NA, [ annotate_clause(AC, SC) || {AC, SC} <- ArgSpecClauses ]},
 	    {attribute, Pos, spec, NewData}
+    catch
+	_:_ ->
+	    edoc_report:warning("cannot annotate spec: "
+				"function and spec clause numbers do not match\n", []),
+	    Spec
     end.
 
 annotate_clause(ArgNames, {type, Pos, 'fun', Data}) ->
@@ -376,7 +373,7 @@ annotate_bounded_fun_clause(ArgNames, {type, Pos, 'fun', Data}, Constraints) ->
 					  constraints => Constraints},
 					lists:zip(ArgNames, Args)),
     #{new_vars := TypeVars, new_constraints := NewConstraints} = NewVarsAndConstraints,
-    length(ArgNames) == length(TypeVars) orelse erlang:error({bounded_fun_arity, TypeVars}),
+    length(ArgNames) == length(TypeVars) orelse error({bounded_fun_arity, TypeVars}),
     NewConstraints2 = case RetType of
 			  {var, _, _} -> [get_constraint(RetType, Constraints) | NewConstraints];
 			  _ -> NewConstraints
@@ -500,7 +497,7 @@ xpath_to_text(XPath, Doc, Opts) ->
 	[#xmlElement{}] = Elements ->
 	    xmerl_to_binary(Elements, Opts);
 	[_|_] ->
-	    erlang:error(multiple_nodes, [XPath, Doc, Opts])
+	    error(multiple_nodes, [XPath, Doc, Opts])
     end.
 
 xmerl_to_binary(XML, Opts) ->
@@ -636,7 +633,7 @@ rewrite_docgen_link({Tag, AttrL, SubEls} = E) when Tag =:= a; Tag =:= see ->
 
 inconsistent_docgen_attrs(Attrs) ->
     %% Only one of `docgen-rel` and `docgen-href` is found - should not happen!
-    erlang:error({inconsistent_docgen_attrs, Attrs}).
+    error({inconsistent_docgen_attrs, Attrs}).
 
 %% @doc `Rel' is actually a stringified {@link edoc_refs:docgen_rel()}.
 -spec expand_docgen_rel(Rel) -> string() when

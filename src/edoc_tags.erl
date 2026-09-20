@@ -33,8 +33,7 @@
 
 -module(edoc_tags).
 
--compile([{nowarn_possibly_unsafe_function, {erlang, list_to_atom, 1}},
-          nowarn_deprecated_catch]).
+-compile([{nowarn_possibly_unsafe_function, {erlang, list_to_atom, 1}}]).
 
 -export([tags/0, tags/1, tag_names/0, tag_parsers/0, scan_lines/2,
 	 filter_tags/2, filter_tags/3, check_tags/4, parse_tags/4,
@@ -290,16 +289,15 @@ parse_tags([], _How, _Env, _Where, Ts) ->
     lists:reverse(Ts).
 
 parse_tag(T, F, Env, Where) ->
-    case catch {ok, F(T#tag.data, T#tag.line, Env, Where)} of
-	{ok, Data} ->
-	    [T#tag{data = Data}];
+    try F(T#tag.data, T#tag.line, Env, Where) of
+	Data ->
+	    [T#tag{data = Data}]
+    catch
 	{expand, Ts} ->
 	    Ts;
-	{error, L, Error} ->
+	{parse_error, L, Error} ->
 	    edoc_report:error(L, Where, Error),
-	    exit(error);
-	{'EXIT', R} -> exit(R);
-	Other -> throw(Other)
+	    throw({error, bad_tag})
     end.
 
 %% parser functions for the built-in content types. They also perform
@@ -324,7 +322,7 @@ parse_spec(Data, Line, _Env, {_, {F, A}} = Where) ->
     Spec = edoc_parser:parse_spec(Data, Line),
     #t_spec{name = N, type = #t_fun{args = As}} = Spec,
     if length(As) /= A ->
-	    throw_error(Line, "@spec arity does not match");
+	    edoc_lib:parse_error(Line, "@spec arity does not match");
        true ->
 	    case N of
 		undefined ->
@@ -332,7 +330,7 @@ parse_spec(Data, Line, _Env, {_, {F, A}} = Where) ->
 		#t_name{module = [], name = F} ->
 		    Spec;
 		_ ->
-		    throw_error(Line, "@spec name does not match")
+		    edoc_lib:parse_error(Line, "@spec name does not match")
 	    end
     end.
 
@@ -345,7 +343,7 @@ parse_throws(Data, Line, _Env, {_, {_F, _A}} = _Where) ->
 parse_contact(Data, Line, _Env, _Where) ->
     case edoc_lib:parse_contact(Data, Line) of
 	{"", "", _URI} ->
-	    throw_error(Line, "must specify name or e-mail");
+	    edoc_lib:parse_error(Line, "must specify name or e-mail");
 	Info ->
 	    Info
     end.
@@ -362,8 +360,7 @@ parse_typedef(Data, Line, _Env, Where) ->
 	true ->
             case edoc_types:is_new_predefined(T, NAs) of
                 false ->
-                    throw_error(Line, {"redefining built-in type '~w'",
-                                       [T]});
+                    edoc_lib:parse_error(Line, {"redefining built-in type '~w'", [T]});
                 true ->
 		    edoc_report:warning(Line, Where, "redefining built-in type '~w'",
 					[T]),
@@ -385,10 +382,11 @@ parse_file(Data, Line, Env, _Where) ->
 		{ok, Ts} ->
 		    throw({expand, Ts});
 		{error, R} ->
-		    throw_error(Line, {read_file, File, R})
+                    edoc_lib:parse_error(Line, {"error reading file '~ts': ~w",
+                                                [edoc_lib:filename(File), R]})
 	    end;
 	_ ->
-	    throw_error(Line, file_not_string)
+            edoc_lib:parse_error(Line, "expected file name as a string")
     end.
 
 -spec parse_header(_, line(), edoc:env(), _) -> no_return().
@@ -402,31 +400,14 @@ parse_header(Data, Line, Env, Where) when is_list(Where) ->
 	    Path = Env#env.includes ++ [Dir],
 	    case edoc_lib:find_file(Path, File) of
 		"" ->
-		    throw_error(Line, {file_not_found, File});
+                    edoc_lib:parse_error(Line, {"file not found: ~ts", [File]});
 		File1 ->
 		    Ts = edoc_extract:header(File1, Env, []),
 		    throw({expand, Ts})
 	    end;
 	_ ->
-	    throw_error(Line, file_not_string)
+            edoc_lib:parse_error(Line, "expected file name as a string")
     end.
-
--type err() :: 'file_not_string'
-             | {'file_not_found', file:filename()}
-             | {'read_file', file:filename(), term()}
-             | {string(), [term()]}
-             | string().
-
--spec throw_error(line(), err()) -> no_return().
-
-throw_error(L, {read_file, File, R}) ->
-    throw_error(L, {"error reading file '~ts': ~w", [edoc_lib:filename(File), R]});
-throw_error(L, {file_not_found, F}) ->
-    throw_error(L, {"file not found: ~ts", [F]});
-throw_error(L, file_not_string) ->
-    throw_error(L, "expected file name as a string");
-throw_error(L, D) ->
-    throw({error, L, D}).
 
 %% Checks local types.
 

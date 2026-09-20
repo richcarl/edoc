@@ -67,7 +67,7 @@ run(#doclet_gen{} = Cmd, Ctxt) ->
 	Cmd#doclet_gen.modules,
 	Ctxt);
 run(#doclet_toc{} = _Cmd, _Ctxt) ->
-    erlang:error(not_implemented).
+    error(not_implemented).
 
 gen(Sources, _App, Modules, Ctxt) ->
     Dir = filename:join(Ctxt#doclet_context.dir, ?CHUNKS_DIR),

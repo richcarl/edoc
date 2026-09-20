@@ -28,8 +28,7 @@
 -include_lib("kernel/include/eep48.hrl").
 
 -compile([{nowarn_possibly_unsafe_function, {erlang, list_to_atom, 1}},
-          {nowarn_possibly_unsafe_function, {erlang, binary_to_atom, 1}},
-          nowarn_deprecated_catch]).
+          {nowarn_possibly_unsafe_function, {erlang, binary_to_atom, 1}}]).
 
 -export([convert_html/2, convert_xml/2, convert_html/3, convert_xml/3]).
 
@@ -154,7 +153,7 @@ preprocess_docs([{a,[{id,Id}] = Attr,[]}| T],
     maybe
         %% Remove any anchor that is just function-arity
         [FunctionString, ArityString] ?= string:split(Id,"-",all),
-        Arity ?= catch binary_to_integer(ArityString),
+        Arity ?= try binary_to_integer(ArityString) catch _:_ -> error end,
         true ?= is_integer(Arity),
         Function ?= binary_to_atom(FunctionString),
         preprocess_docs(T, D)
